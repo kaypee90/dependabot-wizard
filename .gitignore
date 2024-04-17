@@ -22,3 +22,6 @@ go.work
 
 # Generated dependabot files
 dependabot.yml
+
+# Don't ignore github dependabot configuration
+!/.github/dependabot.yml  
