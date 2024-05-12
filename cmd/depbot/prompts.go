@@ -10,7 +10,9 @@ func getPackageEcosystem() string {
 	prompt := promptui.Select{
 		Label: "Select Package Ecosystem",
 		Items: []string{"cargo", "docker", "gomod", "gradle", "maven",
-			"npm", "nuget", "pip", "poetry", "swift", "terraform"},
+			"npm", "nuget", "pip", "poetry", "swift", "terraform",
+			"bundler", "composer", "devcontainers", "elm",
+			"gitsubmodule", "github-actions", "mix", "pub"},
 	}
 
 	_, result, err := prompt.Run()
