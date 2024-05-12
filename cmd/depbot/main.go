@@ -32,7 +32,7 @@ func main() {
 			OpenPullRequestsLimit: openPullRequestsLimit,
 		})
 
-		if NO == addAdditionalPackageManager() {
+		if addAdditionalPackageManager() == NO {
 			break
 		}
 	}
