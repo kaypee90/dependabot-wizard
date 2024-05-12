@@ -6,6 +6,9 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+const YES = "yes"
+const NO = "no"
+
 func getPackageEcosystem() string {
 	prompt := promptui.Select{
 		Label: "Select Package Ecosystem",
@@ -87,4 +90,19 @@ func getOpenPullRequestLimit() int {
 	}
 
 	return limit
+}
+
+func addAdditionalPackageManager() string {
+	prompt := promptui.Select{
+		Label: "Do you want to add another package manager?",
+		Items: []string{YES, NO},
+	}
+
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }

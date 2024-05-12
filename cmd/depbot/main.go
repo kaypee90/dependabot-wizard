@@ -13,25 +13,33 @@ func printIntroText() {
 func main() {
 	printIntroText()
 
-	packageEcosystem := getPackageEcosystem()
-	directory := getDirectory()
-	interval := getInterval()
-	reviewer := getReviewer()
-	openPullRequestsLimit := getOpenPullRequestLimit()
+	var updates []Update
+
+	for {
+		packageEcosystem := getPackageEcosystem()
+		directory := getDirectory()
+		interval := getInterval()
+		reviewer := getReviewer()
+		openPullRequestsLimit := getOpenPullRequestLimit()
+
+		updates = append(updates, Update{
+			PackageEcosystem: packageEcosystem,
+			Directory:        directory,
+			Schedule: Schedule{
+				Interval: interval,
+			},
+			Reviewers:             []string{reviewer},
+			OpenPullRequestsLimit: openPullRequestsLimit,
+		})
+
+		if NO == addAdditionalPackageManager() {
+			break
+		}
+	}
 
 	config := Config{
 		Version: 2,
-		Updates: []Update{
-			{
-				PackageEcosystem: packageEcosystem,
-				Directory:        directory,
-				Schedule: Schedule{
-					Interval: interval,
-				},
-				Reviewers:             []string{reviewer},
-				OpenPullRequestsLimit: openPullRequestsLimit,
-			},
-		},
+		Updates: updates,
 	}
 
 	yamlData := config.ConvertToYaml()
