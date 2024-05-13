@@ -1,20 +1,14 @@
 package main
 
-import "fmt"
-
 const fileName = "dependabot.yml"
 
-func printIntroText() {
-	green := "\033[32m"
-	reset := "\033[0m"
-	fmt.Printf("%sDepbot wizard will help you configure dependabot in your project%s\n", green, reset)
-}
-
 func main() {
-	printIntroText()
+	// display introduction text
+	displayIntroductoryText()
 
 	var updates []Update
 
+	// get dependabot configuration details
 	for {
 		packageEcosystem := getPackageEcosystem()
 		directory := getDirectory()
@@ -42,6 +36,7 @@ func main() {
 		Updates: updates,
 	}
 
+	// write configration data to yaml file
 	yamlData := config.ConvertToYaml()
-	writeDataFile(fileName, yamlData)
+	writeDataToFile(fileName, yamlData)
 }
