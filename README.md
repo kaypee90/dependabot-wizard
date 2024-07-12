@@ -22,10 +22,10 @@ This assumes that your Go installation is in the default location (/usr/local/go
 echo $PATH
 ```
 
-4. Navigate to the .github directory within the desired folder to configure Dependabot:
+4. Navigate to the root directory of your project:
 
 ```bash
-cd <project>/.github
+cd <project>
 ```
 
 5. Start dependabot wizard:
