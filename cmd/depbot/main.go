@@ -1,7 +1,5 @@
 package main
 
-const fileName = "dependabot.yml"
-
 func main() {
 	// display introduction text
 	displayIntroductoryText()
@@ -38,5 +36,5 @@ func main() {
 
 	// write configration data to yaml file
 	yamlData := config.ConvertToYaml()
-	writeDataToFile(fileName, yamlData)
+	createDependabotYmlFile(yamlData)
 }
