@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -17,13 +18,28 @@ func displayIntroductoryText() {
 	fmt.Printf("%sDepbot wizard will help you configure dependabot in your project%s\n", green, reset)
 }
 
-func createDirIfItDoesNotExit(dir string) {
+func createDirIfItDoesNotExit(dir string) (hasCreatedNewDir bool, err error) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.Mkdir(dir, 0755)
+
 		if err != nil {
 			log.Fatalf("Error creating directory %s: %v", dir, err)
+			return false, err
 		}
+
+		return true, nil
 	}
+
+	return false, nil
+}
+
+func getCurrentDir() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Base(currentDir)
 }
 
 func writeDataToFile(fileName string, data []byte) {
@@ -41,8 +57,19 @@ func writeDataToFile(fileName string, data []byte) {
 	log.Printf("Dependabot config created successfully!")
 }
 
-func createDependabotYmlFile(data []byte) {
-	createDirIfItDoesNotExit(githubDir)
-	const fullFilePath = githubDir + "/" + dependabotFileName
+func createConfigurationFile(fileName string, destinationDir string, data []byte, skipCreatingDir bool) {
+	fullFilePath := fileName
+
+	if !skipCreatingDir {
+
+		createDirIfItDoesNotExit(destinationDir)
+		fullFilePath = destinationDir + "/" + fileName
+	}
+
 	writeDataToFile(fullFilePath, data)
+}
+
+func createDependabotYmlFile(data []byte) {
+	skipCreatingDir := getCurrentDir() == githubDir
+	createConfigurationFile(dependabotFileName, githubDir, data, skipCreatingDir)
 }
