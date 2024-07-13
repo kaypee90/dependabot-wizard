@@ -38,10 +38,16 @@ func TestCreateConfigurationFile(t *testing.T) {
 
 	data := []byte("version: 2\nupdates:\n  - package-ecosystem: \"npm\"")
 
-	createConfigurationFile(fileName, testDir, data)
+	createConfigurationFile(fileName, testDir, data, false)
 
 	_, err := os.Stat(testDir + "/" + fileName)
 
 	// Exists
 	assert.NilError(t, err)
+}
+
+func TestGetCurrentDir(t *testing.T) {
+	dirName := getCurrentDir()
+
+	assert.Equal(t, dirName, "depbot")
 }

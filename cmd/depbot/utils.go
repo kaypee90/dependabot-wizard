@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -32,6 +33,15 @@ func createDirIfItDoesNotExit(dir string) (hasCreatedNewDir bool, err error) {
 	return false, nil
 }
 
+func getCurrentDir() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Base(currentDir)
+}
+
 func writeDataToFile(fileName string, data []byte) {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -47,12 +57,19 @@ func writeDataToFile(fileName string, data []byte) {
 	log.Printf("Dependabot config created successfully!")
 }
 
-func createConfigurationFile(fileName string, destinationDir string, data []byte) {
-	createDirIfItDoesNotExit(destinationDir)
-	fullFilePath := destinationDir + "/" + fileName
+func createConfigurationFile(fileName string, destinationDir string, data []byte, skipCreatingDir bool) {
+	fullFilePath := fileName
+
+	if !skipCreatingDir {
+
+		createDirIfItDoesNotExit(destinationDir)
+		fullFilePath = destinationDir + "/" + fileName
+	}
+
 	writeDataToFile(fullFilePath, data)
 }
 
 func createDependabotYmlFile(data []byte) {
-	createConfigurationFile(dependabotFileName, githubDir, data)
+	skipCreatingDir := getCurrentDir() == githubDir
+	createConfigurationFile(dependabotFileName, githubDir, data, skipCreatingDir)
 }
