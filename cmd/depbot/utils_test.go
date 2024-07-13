@@ -27,7 +27,6 @@ func TestCreateDirIfItDoesNotExitIfDirectoryAlreadyExist(t *testing.T) {
 
 	assert.NilError(t, err)
 	assert.Equal(t, hasCreatedNewDir, false)
-
 }
 
 func TestCreateConfigurationFile(t *testing.T) {
@@ -45,5 +44,4 @@ func TestCreateConfigurationFile(t *testing.T) {
 
 	// Exists
 	assert.NilError(t, err)
-
 }
