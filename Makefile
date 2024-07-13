@@ -10,7 +10,7 @@ BINARY_UNIX=$(BINARY_NAME)_unix
 run:
 	$(GORUN) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
 build: 
-	$(GOBUILD) -o $(BINARY_NAME) -v
+	$(GOBUILD) -o $(BINARY_NAME) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
 test: 
 	$(GOTEST) -v ./...
 clean: 
