@@ -33,15 +33,6 @@ func createDirIfItDoesNotExit(dir string) (hasCreatedNewDir bool, err error) {
 	return false, nil
 }
 
-func getCurrentDir() string {
-	currentDir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Base(currentDir)
-}
-
 func writeDataToFile(fileName string, data []byte) {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -61,12 +52,23 @@ func createConfigurationFile(fileName string, destinationDir string, data []byte
 	fullFilePath := fileName
 
 	if !skipCreatingDir {
-
+		log.Printf("Creating %s directory..", githubDir)
 		createDirIfItDoesNotExit(destinationDir)
 		fullFilePath = destinationDir + "/" + fileName
+	} else {
+		log.Printf("Skipping directory creation since current directory is %s", githubDir)
 	}
 
 	writeDataToFile(fullFilePath, data)
+}
+
+func getCurrentDir() string {
+	currentDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Base(currentDir)
 }
 
 func createDependabotYmlFile(data []byte) {
