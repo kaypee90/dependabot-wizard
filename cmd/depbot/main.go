@@ -2,7 +2,7 @@ package main
 
 func main() {
 	// display introduction text
-	displayIntroductoryText()
+	printIntroductoryText()
 
 	var updates []Update
 
@@ -36,5 +36,5 @@ func main() {
 
 	// write configration data to yaml file
 	yamlData := config.ConvertToYaml()
-	createDependabotYmlFile(yamlData)
+	createDependabotYamlFile(yamlData)
 }

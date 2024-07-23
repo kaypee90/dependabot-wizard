@@ -9,21 +9,21 @@ import (
 
 const testDir = "./test"
 
-func TestCreateDirIfItDoesNotExitIfDirectoryAlreadyDoesntExist(t *testing.T) {
+func TestCreateDirectoryIfItDoesNotExistIfDirectoryAlreadyDoesntExist(t *testing.T) {
 	defer os.RemoveAll(testDir)
 
-	hasCreatedNewDir, err := createDirIfItDoesNotExit(testDir)
+	hasCreatedNewDir, err := createDirectoryIfItDoesNotExist(testDir)
 
 	assert.NilError(t, err)
 	assert.Equal(t, hasCreatedNewDir, true)
 }
 
-func TestCreateDirIfItDoesNotExitIfDirectoryAlreadyExist(t *testing.T) {
+func TestCreateDirectoryIfItDoesNotExistIfDirectoryAlreadyExist(t *testing.T) {
 	defer os.RemoveAll(testDir)
 
 	_ = os.Mkdir(testDir, 0755)
 
-	hasCreatedNewDir, err := createDirIfItDoesNotExit(testDir)
+	hasCreatedNewDir, err := createDirectoryIfItDoesNotExist(testDir)
 
 	assert.NilError(t, err)
 	assert.Equal(t, hasCreatedNewDir, false)
@@ -46,8 +46,8 @@ func TestCreateConfigurationFile(t *testing.T) {
 	assert.NilError(t, err)
 }
 
-func TestGetCurrentDir(t *testing.T) {
-	dirName := getCurrentDir()
+func TestGetWorkingDirectory(t *testing.T) {
+	dirName := getWorkingDirectory()
 
 	assert.Equal(t, dirName, "depbot")
 }
