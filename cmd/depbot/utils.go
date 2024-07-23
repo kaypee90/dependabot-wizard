@@ -52,11 +52,8 @@ func createConfigurationFile(fileName string, destinationDir string, data []byte
 	fullFilePath := fileName
 
 	if !skipCreatingDir {
-		log.Printf("Creating %s directory..", githubDirectory)
 		createDirectoryIfItDoesNotExist(destinationDir)
 		fullFilePath = destinationDir + "/" + fileName
-	} else {
-		log.Printf("Skipping directory creation since %s already exists", githubDirectory)
 	}
 
 	writeBytesToFile(fullFilePath, data)
