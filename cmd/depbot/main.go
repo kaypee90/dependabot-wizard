@@ -1,6 +1,19 @@
 package main
 
-func main() {
+import (
+	"flag"
+	"fmt"
+	"os"
+)
+
+const version = "0.2.3"
+
+func displayAppVersion() {
+	fmt.Printf("Depbot %s\n", version)
+	os.Exit(0)
+}
+
+func launchApplicaton() {
 	// display introduction text
 	printIntroductoryText()
 
@@ -37,4 +50,15 @@ func main() {
 	// write configration data to yaml file
 	yamlData := config.ConvertToYaml()
 	createDependabotYamlFile(yamlData)
+	os.Exit(0)
+}
+
+func main() {
+	showVersion := flag.Bool("version", false, "Display app version")
+	flag.Parse()
+	if *showVersion {
+		displayAppVersion()
+	} else {
+		launchApplicaton()
+	}
 }

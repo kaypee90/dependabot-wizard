@@ -7,8 +7,12 @@ GORUN=$(GOCMD) run
 BINARY_NAME=depbot
 BINARY_UNIX=$(BINARY_NAME)_unix
 
+LAUNCH=$(GORUN) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
+
 run:
-	$(GORUN) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
+	$(LAUNCH)
+version:
+	$(LAUNCH) --version
 build: 
 	$(GOBUILD) -o $(BINARY_NAME) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
 test: 
