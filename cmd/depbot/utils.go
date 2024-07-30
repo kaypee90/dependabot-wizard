@@ -10,6 +10,7 @@ import (
 const (
 	dependabotFileName = "dependabot.yml"
 	githubDirectory    = ".github"
+	pathSeperator      = "/"
 )
 
 func printIntroductoryText() {
@@ -83,7 +84,7 @@ func getDependabotYamlFilePath(fileName string, destinationDir string) string {
 	fullFilePath := fileName
 
 	if !workingDirectoryIsGithub() {
-		fullFilePath = destinationDir + "/" + fileName
+		fullFilePath = destinationDir + pathSeperator + fileName
 	}
 
 	return fullFilePath
