@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const version = "0.3.0"
+const version = "0.3.1"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
@@ -18,13 +18,16 @@ func launchApplicaton() {
 	printIntroductoryText()
 
 	var updates []Update
+	existingConfigurationChecked := false
 
 	// get dependabot configuration details
 	for {
-		if dependabotFileExists() {
+		if !existingConfigurationChecked && dependabotFileExists() {
 			if getConfigurationOverrideConfirmation() == NO {
 				os.Exit(0)
 			}
+
+			existingConfigurationChecked = true
 		}
 
 		packageEcosystem := getPackageEcosystem()
