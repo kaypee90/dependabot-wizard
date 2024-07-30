@@ -9,6 +9,21 @@ import (
 const YES = "yes"
 const NO = "no"
 
+func getConfigurationOverrideConfirmation() string {
+	prompt := promptui.Select{
+		Label: "Dependabot is currently configured for this project. Would you like to override the current configuration?",
+		Items: []string{YES, NO},
+	}
+
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
 func getPackageEcosystem() string {
 	prompt := promptui.Select{
 		Label: "Select Package Ecosystem",

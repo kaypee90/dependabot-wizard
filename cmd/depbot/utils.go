@@ -33,6 +33,16 @@ func writeBytesToFile(fileName string, data []byte) {
 	log.Printf("Dependabot config created successfully!")
 }
 
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
 func createDirectoryIfItDoesNotExist(dir string) (hasCreatedNewDir bool, err error) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.Mkdir(dir, 0755)
@@ -48,12 +58,9 @@ func createDirectoryIfItDoesNotExist(dir string) (hasCreatedNewDir bool, err err
 	return false, nil
 }
 
-func createConfigurationFile(fileName string, destinationDir string, data []byte, skipCreatingDir bool) {
-	fullFilePath := fileName
-
+func createConfigurationFile(fullFilePath string, destinationDir string, data []byte, skipCreatingDir bool) {
 	if !skipCreatingDir {
 		createDirectoryIfItDoesNotExist(destinationDir)
-		fullFilePath = destinationDir + "/" + fileName
 	}
 
 	writeBytesToFile(fullFilePath, data)
@@ -68,7 +75,27 @@ func getWorkingDirectory() string {
 	return filepath.Base(currentDirectory)
 }
 
+func currentDirectoryIsGithub() bool {
+	return getWorkingDirectory() == githubDirectory
+}
+
+func generateDependabotYamlFilePath(fileName string, destinationDir string) string {
+	fullFilePath := fileName
+
+	if !currentDirectoryIsGithub() {
+		fullFilePath = destinationDir + "/" + fileName
+	}
+
+	return fullFilePath
+}
+
 func createDependabotYamlFile(data []byte) {
-	skipCreatingDir := getWorkingDirectory() == githubDirectory
-	createConfigurationFile(dependabotFileName, githubDirectory, data, skipCreatingDir)
+	skipCreatingDir := currentDirectoryIsGithub()
+	fullFilePath := generateDependabotYamlFilePath(dependabotFileName, githubDirectory)
+	createConfigurationFile(fullFilePath, githubDirectory, data, skipCreatingDir)
+}
+
+func checkIfDependabotFileExists() bool {
+	dependabotYmlFilePath := generateDependabotYamlFilePath(dependabotFileName, githubDirectory)
+	return fileExists(dependabotYmlFilePath)
 }

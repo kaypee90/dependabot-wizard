@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const version = "0.2.3"
+const version = "0.3.0"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
@@ -21,6 +21,12 @@ func launchApplicaton() {
 
 	// get dependabot configuration details
 	for {
+		if checkIfDependabotFileExists() {
+			if getConfigurationOverrideConfirmation() == NO {
+				os.Exit(0)
+			}
+		}
+
 		packageEcosystem := getPackageEcosystem()
 		directory := getDirectory()
 		interval := getInterval()
