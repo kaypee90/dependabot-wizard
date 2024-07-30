@@ -75,14 +75,14 @@ func getWorkingDirectory() string {
 	return filepath.Base(currentDirectory)
 }
 
-func checkIfCurrentDirectoryIsGithub() bool {
+func workingDirectoryIsGithub() bool {
 	return getWorkingDirectory() == githubDirectory
 }
 
-func generateDependabotYamlFilePath(fileName string, destinationDir string) string {
+func getDependabotYamlFilePath(fileName string, destinationDir string) string {
 	fullFilePath := fileName
 
-	if !checkIfCurrentDirectoryIsGithub() {
+	if !workingDirectoryIsGithub() {
 		fullFilePath = destinationDir + "/" + fileName
 	}
 
@@ -90,12 +90,12 @@ func generateDependabotYamlFilePath(fileName string, destinationDir string) stri
 }
 
 func createDependabotYamlFile(data []byte) {
-	skipCreatingDir := checkIfCurrentDirectoryIsGithub()
-	fullFilePath := generateDependabotYamlFilePath(dependabotFileName, githubDirectory)
+	skipCreatingDir := workingDirectoryIsGithub()
+	fullFilePath := getDependabotYamlFilePath(dependabotFileName, githubDirectory)
 	createConfigurationFile(fullFilePath, githubDirectory, data, skipCreatingDir)
 }
 
-func checkIfDependabotFileExists() bool {
-	dependabotYmlFilePath := generateDependabotYamlFilePath(dependabotFileName, githubDirectory)
+func dependabotFileExists() bool {
+	dependabotYmlFilePath := getDependabotYamlFilePath(dependabotFileName, githubDirectory)
 	return fileExists(dependabotYmlFilePath)
 }

@@ -21,7 +21,7 @@ func launchApplicaton() {
 
 	// get dependabot configuration details
 	for {
-		if checkIfDependabotFileExists() {
+		if dependabotFileExists() {
 			if getConfigurationOverrideConfirmation() == NO {
 				os.Exit(0)
 			}

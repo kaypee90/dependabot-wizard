@@ -38,7 +38,7 @@ func TestCreateConfigurationFile(t *testing.T) {
 	_ = os.Mkdir(destinationDir, 0755)
 
 	data := []byte("version: 2\nupdates:\n  - package-ecosystem: \"npm\"")
-	filePath := generateDependabotYamlFilePath(fileName, destinationDir)
+	filePath := getDependabotYamlFilePath(fileName, destinationDir)
 
 	createConfigurationFile(filePath, destinationDir, data, false)
 
