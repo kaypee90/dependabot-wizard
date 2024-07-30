@@ -18,13 +18,16 @@ func launchApplicaton() {
 	printIntroductoryText()
 
 	var updates []Update
+	existingConfigChecked := false
 
 	// get dependabot configuration details
 	for {
-		if dependabotFileExists() {
+		if !existingConfigChecked && dependabotFileExists() {
 			if getConfigurationOverrideConfirmation() == NO {
 				os.Exit(0)
 			}
+
+			existingConfigChecked = true
 		}
 
 		packageEcosystem := getPackageEcosystem()
