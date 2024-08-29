@@ -9,7 +9,7 @@ import (
 const YES = "yes"
 const NO = "no"
 
-func getConfigurationOverrideConfirmation() string {
+func getConfigurationOverrideConfirmation() (string, error) {
 	prompt := promptui.Select{
 		Label: "Dependabot is currently configured for this project. Would you like to override the current configuration?",
 		Items: []string{YES, NO},
@@ -17,14 +17,10 @@ func getConfigurationOverrideConfirmation() string {
 
 	_, result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
 
-func getPackageEcosystem() string {
+func getPackageEcosystem() (string, error) {
 	prompt := promptui.Select{
 		Label: "Select Package Ecosystem",
 		Items: []string{"cargo", "docker", "gomod", "gradle", "maven",
@@ -35,15 +31,11 @@ func getPackageEcosystem() string {
 
 	_, result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
 
 // TOD0: Add validataion
-func getDirectory() string {
+func getDirectory() (string, error) {
 	prompt := promptui.Prompt{
 		Label:   "Provide Directory (/)",
 		Default: "/",
@@ -51,14 +43,10 @@ func getDirectory() string {
 
 	result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
 
-func getInterval() string {
+func getInterval() (string, error) {
 	prompt := promptui.Select{
 		Label: "Select Interval",
 		Items: []string{"daily", "weekly", "monthly"},
@@ -66,29 +54,21 @@ func getInterval() string {
 
 	_, result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
 
 // TOD0: Add validataion
-func getReviewer() string {
+func getReviewer() (string, error) {
 	prompt := promptui.Prompt{
 		Label: "Provide Reviewer (optional)",
 	}
 
 	result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
 
-func getOpenPullRequestLimit() int {
+func getOpenPullRequestLimit() (int, error) {
 	prompt := promptui.Prompt{
 		Label: "Provide Open Pull Request Limit (optional)",
 	}
@@ -96,18 +76,18 @@ func getOpenPullRequestLimit() int {
 	result, err := prompt.Run()
 
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 
 	limit, err := strconv.Atoi(result)
 	if err != nil {
-		return 5
+		return 5, nil
 	}
 
-	return limit
+	return limit, nil
 }
 
-func addAdditionalPackageManager() string {
+func addAdditionalPackageManager() (string, error) {
 	prompt := promptui.Select{
 		Label: "Do you want to add another package manager?",
 		Items: []string{YES, NO},
@@ -115,9 +95,5 @@ func addAdditionalPackageManager() string {
 
 	_, result, err := prompt.Run()
 
-	if err != nil {
-		panic(err)
-	}
-
-	return result
+	return result, err
 }
