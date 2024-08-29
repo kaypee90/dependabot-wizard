@@ -34,7 +34,6 @@ func getPackageEcosystem() (string, error) {
 	return result, err
 }
 
-// TOD0: Add validataion
 func getDirectory() (string, error) {
 	prompt := promptui.Prompt{
 		Label:   "Provide Directory (/)",
@@ -57,7 +56,6 @@ func getInterval() (string, error) {
 	return result, err
 }
 
-// TOD0: Add validataion
 func getReviewer() (string, error) {
 	prompt := promptui.Prompt{
 		Label: "Provide Reviewer (optional)",
