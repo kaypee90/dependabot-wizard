@@ -13,6 +13,12 @@ func displayAppVersion() {
 	os.Exit(0)
 }
 
+func handlePromptError(err error) {
+	if err != nil {
+		os.Exit(0)
+	}
+}
+
 func launchApplicaton() {
 	// display introduction text
 	printIntroductoryText()
@@ -23,18 +29,27 @@ func launchApplicaton() {
 	// get dependabot configuration details
 	for {
 		if !existingConfigurationChecked && dependabotFileExists() {
-			if getConfigurationOverrideConfirmation() == NO {
+			if result, err := getConfigurationOverrideConfirmation(); err != nil || result == NO {
 				os.Exit(0)
 			}
 
 			existingConfigurationChecked = true
 		}
 
-		packageEcosystem := getPackageEcosystem()
-		directory := getDirectory()
-		interval := getInterval()
-		reviewer := getReviewer()
-		openPullRequestsLimit := getOpenPullRequestLimit()
+		packageEcosystem, err := getPackageEcosystem()
+		handlePromptError(err)
+
+		directory, err := getDirectory()
+		handlePromptError(err)
+
+		interval, err := getInterval()
+		handlePromptError(err)
+
+		reviewer, err := getReviewer()
+		handlePromptError(err)
+
+		openPullRequestsLimit, err := getOpenPullRequestLimit()
+		handlePromptError(err)
 
 		updates = append(updates, Update{
 			PackageEcosystem: packageEcosystem,
@@ -46,7 +61,8 @@ func launchApplicaton() {
 			OpenPullRequestsLimit: openPullRequestsLimit,
 		})
 
-		if addAdditionalPackageManager() == NO {
+		if result, err := addAdditionalPackageManager(); err != nil || result == NO {
+			handlePromptError(err)
 			break
 		}
 	}
