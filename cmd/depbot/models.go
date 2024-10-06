@@ -11,11 +11,12 @@ type Update struct {
 	Directory             string   `yaml:"directory"`
 	Schedule              Schedule `yaml:"schedule"`
 	Reviewers             []string `yaml:"reviewers,omitempty"`
-	OpenPullRequestsLimit int      `yaml:"open-pull-requests-limit,omitempty"`
+	OpenPullRequestsLimit uint64   `yaml:"open-pull-requests-limit,omitempty"`
+	Labels                []string `yaml:"labels,omitempty"`
 }
 
 type Config struct {
-	Version int      `yaml:"version"`
+	Version uint8    `yaml:"version"`
 	Updates []Update `yaml:"updates"`
 }
 
