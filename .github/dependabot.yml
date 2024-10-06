@@ -7,3 +7,5 @@ updates:
   reviewers:
   - kaypee90
   open-pull-requests-limit: 5
+  labels:
+  - go mod

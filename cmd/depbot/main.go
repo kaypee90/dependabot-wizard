@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const version = "0.4.0"
+const version = "0.5.0"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
@@ -45,11 +45,22 @@ func launchApplicaton() {
 		interval, err := getInterval()
 		handlePromptError(err)
 
+		var reviewers []string
 		reviewer, err := getReviewer()
 		handlePromptError(err)
+		if reviewer != "" {
+			reviewers = append(reviewers, reviewer)
+		}
 
 		openPullRequestsLimit, err := getOpenPullRequestLimit()
 		handlePromptError(err)
+
+		var labels []string
+		label, err := getLabel()
+		handlePromptError(err)
+		if label != "" {
+			labels = append(labels, label)
+		}
 
 		updates = append(updates, Update{
 			PackageEcosystem: packageEcosystem,
@@ -57,8 +68,9 @@ func launchApplicaton() {
 			Schedule: Schedule{
 				Interval: interval,
 			},
-			Reviewers:             []string{reviewer},
+			Reviewers:             reviewers,
 			OpenPullRequestsLimit: openPullRequestsLimit,
+			Labels:                labels,
 		})
 
 		if result, err := addAdditionalPackageManager(); err != nil || result == NO {
