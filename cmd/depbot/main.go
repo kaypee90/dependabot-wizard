@@ -55,9 +55,8 @@ func launchApplicaton() {
 		openPullRequestsLimit, err := getOpenPullRequestLimit()
 		handlePromptError(err)
 
-		label, err := getLabel()
-
 		var labels []string
+		label, err := getLabel()
 		handlePromptError(err)
 		if label != "" {
 			labels = append(labels, label)
