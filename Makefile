@@ -13,6 +13,8 @@ run:
 	$(LAUNCH)
 version:
 	$(LAUNCH) --version
+web:
+	$(LAUNCH) --web
 build: 
 	$(GOBUILD) -o $(BINARY_NAME) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
 test: 
