@@ -1,12 +1,9 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
+import { observer } from "mobx-react-lite";
+import { configStore } from '../store/configuration-store';
 
-
-type Props = {
-  code: string
-}
-
-export default function ConfigYaml({ code }: Props) {
+const ConfigYaml: React.FC = observer(() => {
   return (
     <Box sx={{
       whiteSpace: 'pre',
@@ -22,9 +19,10 @@ export default function ConfigYaml({ code }: Props) {
       hyphens: 'none',
       overflow: 'auto',
       margin: '0px 0px',
-      background: '#fff'
     }}>
-      {code}
+      {configStore.yamlData}
     </Box>
-  );
-};
+  )
+});
+
+export default ConfigYaml;

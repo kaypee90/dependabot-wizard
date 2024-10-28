@@ -7,21 +7,6 @@ import ConfigDivider from './config-divider';
 import ConfigYaml from './config-yaml';
 
 export function MainConfiguration() {
-  const yamlData = `
-  version: 2
-  updates:
-  - package-ecosystem: gomod
-    directory: /
-    schedule:
-      interval: weekly
-    reviewers:
-    - kaypee90
-    open-pull-requests-limit: 5
-    labels:
-    - go mod`;
-
-  const [yamlCode, setYamlCode] = useState<string>(yamlData);
-
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -35,7 +20,7 @@ export function MainConfiguration() {
         </Grid>
 
         <Grid item xs={6} sx={{ background: '#fff', color: '#000' }}>
-          <ConfigYaml code={yamlCode} />
+          <ConfigYaml />
         </Grid>
       </Grid>
     </Box>
