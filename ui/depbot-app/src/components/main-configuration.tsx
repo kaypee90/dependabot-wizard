@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid';
 import PackageEcosystem from './package-ecosystem';
 import ConfigDivider from './config-divider';
 import ConfigYaml from './config-yaml';
+import CreateYamlFile from './create-yaml-file';
 
 export function MainConfiguration() {
 
@@ -16,10 +17,11 @@ export function MainConfiguration() {
             <ConfigDivider />
             <PackageEcosystem />
             <ConfigDivider />
+            <CreateYamlFile />
           </div>
         </Grid>
 
-        <Grid item xs={6} sx={{ background: '#fff', color: '#000' }}>
+        <Grid item xs={6} sx={{ marginTop: '1.5vh', background: '#fff', color: '#000' }}>
           <ConfigYaml />
         </Grid>
       </Grid>

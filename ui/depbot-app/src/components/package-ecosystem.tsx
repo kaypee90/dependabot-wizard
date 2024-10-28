@@ -13,18 +13,20 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import { generateYaml } from './config-generator';
 import { observer } from 'mobx-react-lite';
+import { configStore } from '../store/configuration-store';
 
 const PackageEcosystem: React.FC = observer(() => {
   const [ecosystem, setEcosystem] = React.useState('');
   const [directory, setDirectory] = React.useState('');
   const [interval, setInterval] = React.useState('');
   const [reviewer, setReviewer] = React.useState('');
-  const [openPrLimit, setOpenPrLimit] = React.useState(0);
+  const [openPrLimit, setOpenPrLimit] = React.useState('');
   const [configLabel, setConfigLabel] = React.useState('');
 
-  const generateConfigYaml = () => {
-    generateYaml(ecosystem, directory, interval, reviewer, openPrLimit, configLabel);
-  }
+  const generateConfigYaml = React.useCallback(() => {
+    configStore.setPackageConfiguration(ecosystem, directory, interval, reviewer, openPrLimit, configLabel);
+    generateYaml();
+  }, [ecosystem, directory, interval, reviewer, openPrLimit, configLabel]);
 
   const ecosystemHandleChange = (event: SelectChangeEvent) => {
     setEcosystem(event.target.value as string);
@@ -32,7 +34,7 @@ const PackageEcosystem: React.FC = observer(() => {
   };
 
   const directoryHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDirectory(event.target.value);
+    setDirectory(event.target.value as string);
     generateConfigYaml();
   };
 
@@ -42,17 +44,17 @@ const PackageEcosystem: React.FC = observer(() => {
   };
 
   const reviewerHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setReviewer(event.target.value);
+    setReviewer(event.target.value as string);
     generateConfigYaml();
   };
 
   const openPrLimitHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOpenPrLimit(event.target.value as unknown as number);
+    setOpenPrLimit(event.target.value as string);
     generateConfigYaml();
   };
 
   const configLabelHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConfigLabel(event.target.value);
+    setConfigLabel(event.target.value as string);
     generateConfigYaml();
   };
 
@@ -74,7 +76,7 @@ const PackageEcosystem: React.FC = observer(() => {
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
-            <h5>Package Ecosystem</h5>
+            <h5>Package Ecosystem *</h5>
           </Grid>
           <Grid item xs={8}>
             <div>
@@ -100,7 +102,7 @@ const PackageEcosystem: React.FC = observer(() => {
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
-            <h5>Directory</h5>
+            <h5>Directory *</h5>
           </Grid>
           <Grid item xs={8}>
             <div>
@@ -116,7 +118,7 @@ const PackageEcosystem: React.FC = observer(() => {
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
-            <h5>Interval (Schedule)</h5>
+            <h5>Interval (Schedule) *</h5>
           </Grid>
           <Grid item xs={8}>
             <div>
@@ -157,7 +159,7 @@ const PackageEcosystem: React.FC = observer(() => {
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
-            <h5>Open Pull Requests Limit</h5>
+            <h5>Open Pull Requests Limit *</h5>
           </Grid>
           <Grid item xs={8}>
             <div>
@@ -184,8 +186,6 @@ const PackageEcosystem: React.FC = observer(() => {
             </div>
           </Grid>
         </Grid>
-
-
 
       </AccordionDetails>
     </Accordion>

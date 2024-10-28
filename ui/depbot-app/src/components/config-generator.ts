@@ -1,18 +1,18 @@
 import { configStore } from "../store/configuration-store";
 
-export const generateYaml = (ecosystem: string, directory: string, schedule: string, reviewer: string, openPrLimit: number, label: string) => {
+export const generateYaml = () => {
   const yamlData: string = `
   version: 2
   updates:
-  - package-ecosystem: ${ecosystem}
-    directory: ${directory}
+  - package-ecosystem: ${configStore.ecosystem}
+    directory: ${configStore.directory}
     schedule:
-      interval: ${schedule} 
+      interval: ${configStore.schedule} 
     reviewers:
-    - ${reviewer}
-    open-pull-requests-limit: ${openPrLimit}
+    - ${configStore.reviewer}
+    open-pull-requests-limit: ${configStore.openPrLimit}
     labels:
-    - ${label}`;
+    - ${configStore.label}`;
 
   configStore.saveYamlData(yamlData);
 }
