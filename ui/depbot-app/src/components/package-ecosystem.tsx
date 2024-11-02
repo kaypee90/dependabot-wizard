@@ -94,6 +94,22 @@ const PackageEcosystem: React.FC = observer(() => {
                   <MenuItem value={'cargo'}>Cargo</MenuItem>
                   <MenuItem value={'docker'}>Docker</MenuItem>
                   <MenuItem value={'gomod'}>Go Mod</MenuItem>
+                  <MenuItem value={'gradle'}>Gradle</MenuItem>
+                  <MenuItem value={'maven'}>Maven</MenuItem>
+                  <MenuItem value={'npm'}>NPM</MenuItem>
+                  <MenuItem value={'nuget'}>Nuget</MenuItem>
+                  <MenuItem value={'pip'}>Pip</MenuItem>
+                  <MenuItem value={'poetry'}>Poetry</MenuItem>
+                  <MenuItem value={'swift'}>Swift</MenuItem>
+                  <MenuItem value={'terraform'}>Terraform</MenuItem>
+                  <MenuItem value={'bundler'}>Bundler</MenuItem>
+                  <MenuItem value={'composer'}>Composer</MenuItem>
+                  <MenuItem value={'devcontainers'}>Dev Containers</MenuItem>
+                  <MenuItem value={'elm'}>Elm</MenuItem>
+                  <MenuItem value={'gitsubmodule'}>Git Submodule</MenuItem>
+                  <MenuItem value={'github-actions'}>GitHub Actions</MenuItem>
+                  <MenuItem value={'mix'}>Mix</MenuItem>
+                  <MenuItem value={'pub'}>Pub</MenuItem>
                 </Select>
               </FormControl>
             </div>
