@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const version = "0.5.0"
+const version = "1.0.0"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
@@ -92,9 +92,13 @@ func launchApplicaton() {
 
 func main() {
 	showVersion := flag.Bool("version", false, "Display app version")
+	startWebApp := flag.Bool("web", false, "Start web application")
+
 	flag.Parse()
 	if *showVersion {
 		displayAppVersion()
+	} else if *startWebApp {
+		startWebApplication()
 	} else {
 		launchApplicaton()
 	}
