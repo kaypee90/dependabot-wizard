@@ -27,7 +27,7 @@ func saveConfigurationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(config.Configuration)
+	createDependabotYamlFile([]byte(config.Configuration))
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
