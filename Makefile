@@ -11,6 +11,8 @@ LAUNCH=$(GORUN) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
 
 run:
 	$(LAUNCH)
+help:
+	$(LAUNCH) --help
 version:
 	$(LAUNCH) --version
 web:
