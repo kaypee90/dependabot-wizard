@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
