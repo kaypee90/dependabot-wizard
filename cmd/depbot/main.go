@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 const version = "1.1.0"
@@ -25,7 +26,19 @@ func handlePromptError(err error) {
 	}
 }
 
-func launchApplicaton() {
+func launchWebApplication() {
+	go func() {
+		startWebApplication()
+	}()
+
+	time.Sleep(1 * time.Second)
+
+	openBrowser("http://127.0.0.1:3001/static/static/")
+
+	select {}
+}
+
+func launchCliApplicaton() {
 	// display introduction text
 	printIntroductoryText()
 
@@ -105,10 +118,10 @@ func main() {
 	if *showVersion {
 		displayAppVersion()
 	} else if *startWebApp {
-		startWebApplication()
+		launchWebApplication()
 	} else if *displayHelp {
 		displayHelpText()
 	} else {
-		launchApplicaton()
+		launchCliApplicaton()
 	}
 }
