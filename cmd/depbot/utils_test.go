@@ -77,3 +77,9 @@ func TestFileExistsWhenFileAlrieadyExists(t *testing.T) {
 
 	assert.Equal(t, hasFile, true)
 }
+
+func TestGetCliHelpText(t *testing.T) {
+	text := getCliHelpText()
+
+	assert.Equal(t, text, cliHelpText)
+}

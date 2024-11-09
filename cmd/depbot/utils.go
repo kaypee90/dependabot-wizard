@@ -11,7 +11,20 @@ const (
 	dependabotFileName = "dependabot.yml"
 	githubDirectory    = ".github"
 	pathSeperator      = "/"
+	cliHelpText        = `Depbot - A CLI tool to help you configure dependabot in your project
+  Usage:
+  depbot [flags]
+
+  Flags:
+  --help     -h  Show help
+  --version  -v Display app version
+  --web      -w    Start web application
+`
 )
+
+func getCliHelpText() string {
+	return cliHelpText
+}
 
 func printIntroductoryText() {
 	green := "\033[32m"
@@ -47,7 +60,6 @@ func fileExists(filename string) bool {
 func createDirectoryIfItDoesNotExist(dir string) (hasCreatedNewDir bool, err error) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err := os.Mkdir(dir, 0755)
-
 		if err != nil {
 			log.Fatalf("Error creating directory %s: %v", dir, err)
 			return false, err

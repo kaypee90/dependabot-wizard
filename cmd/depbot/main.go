@@ -13,6 +13,12 @@ func displayAppVersion() {
 	os.Exit(0)
 }
 
+func displayHelpText() {
+	text := getCliHelpText()
+	fmt.Printf("%s", text)
+	os.Exit(0)
+}
+
 func handlePromptError(err error) {
 	if err != nil {
 		os.Exit(0)
@@ -93,12 +99,15 @@ func launchApplicaton() {
 func main() {
 	showVersion := flag.Bool("version", false, "Display app version")
 	startWebApp := flag.Bool("web", false, "Start web application")
+	displayHelp := flag.Bool("help", false, "Display help text")
 
 	flag.Parse()
 	if *showVersion {
 		displayAppVersion()
 	} else if *startWebApp {
 		startWebApplication()
+	} else if *displayHelp {
+		displayHelpText()
 	} else {
 		launchApplicaton()
 	}
