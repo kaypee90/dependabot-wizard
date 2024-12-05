@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/kaypee90/dependabot-wizard/github"
 )
 
 //go:embed static/*
@@ -13,6 +15,29 @@ var staticFiles embed.FS
 
 type ConfigurationRequest struct {
 	Configuration string `json:"configuration"`
+}
+
+type GetPullRequestsRequest struct {
+	Owner string `json:"owner"`
+	Repo  string `json:"repo"`
+	Token string `json:"token"`
+}
+
+func getPullRequestsHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var request GetPullRequestsRequest
+	if err := decoder.Decode(&request); err != nil {
+		if err == io.EOF {
+			http.Error(w, "Empty request body", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	pullRequests := github.GetPullRequests(request.Owner, request.Repo, request.Token)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pullRequests)
 }
 
 func saveConfigurationHandler(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +85,7 @@ func startWebApplication() {
 
 	mux.HandleFunc("/", healthCheckHandler)
 	mux.HandleFunc("/api/configurations", saveConfigurationHandler)
+	mux.HandleFunc("/api/pull-requests", getPullRequestsHandler)
 
 	port := ":3001"
 	fmt.Println("Serving on http://localhost" + port)
