@@ -5,11 +5,12 @@ type Author struct {
 }
 
 type PullRequest struct {
-	Title  string  `json:"title"`
-	Number int     `json:"number"`
-	Url    string  `json:"url"`
-	State  string  `json:"state"`
-	Author *Author `json:"user"`
+	Title     string  `json:"title"`
+	Number    int     `json:"number"`
+	Url       string  `json:"url"`
+	State     string  `json:"state"`
+	Author    *Author `json:"user"`
+	CreatedAt string  `json:"createdAt"`
 }
 
 type PullRequestNode struct {
