@@ -10,6 +10,8 @@ class ConfigurationStore {
   openPrLimit: string = "";
   label: string = "";
 
+  showGithubInfo: boolean = false;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -27,6 +29,10 @@ class ConfigurationStore {
     if (newYamlData.trim()) {
       this.yamlData = newYamlData.trim() + "\n";
     }
+  }
+
+  setShowGithubInfo(showInfo: boolean) {
+    this.showGithubInfo = showInfo;
   }
 }
 

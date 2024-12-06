@@ -8,7 +8,7 @@ import Button from '@mui/material/Button';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-import { MainConfiguration } from './components';
+import { MainConfiguration, GithubInfoButton, GithubInfo } from './components';
 
 export default function ButtonAppBar() {
   const darkTheme = createTheme({
@@ -27,10 +27,10 @@ export default function ButtonAppBar() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Depbot
             </Typography>
-            <Button color="inherit">Copy Yaml</Button>
+            <GithubInfoButton />
           </Toolbar>
         </AppBar>
-
+        <GithubInfo />
         <MainConfiguration />
       </Box>
     </ThemeProvider>
