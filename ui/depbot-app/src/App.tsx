@@ -1,14 +1,12 @@
 
-import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-import { MainConfiguration, GithubInfoButton, GithubInfo } from './components';
+import { MainConfiguration, GithubInfoButton, GithubInfo, GithubRepoDetails } from './components';
 
 export default function ButtonAppBar() {
   const darkTheme = createTheme({
@@ -31,6 +29,7 @@ export default function ButtonAppBar() {
           </Toolbar>
         </AppBar>
         <GithubInfo />
+        <GithubRepoDetails />
         <MainConfiguration />
       </Box>
     </ThemeProvider>

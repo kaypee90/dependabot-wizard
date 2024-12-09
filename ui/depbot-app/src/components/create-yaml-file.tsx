@@ -27,7 +27,8 @@ const CreateYamlFile: React.FC = observer(() => {
 
   const handlePostRequest = async (data: string) => {
     try {
-      const response = await postAsync(data, "configurations");
+      const payload = { configuration: data };
+      const response = await postAsync(payload, "configurations");
 
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`);

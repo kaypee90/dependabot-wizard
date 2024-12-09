@@ -6,7 +6,11 @@ import { configStore } from '../store/configuration-store';
 export const GithubInfoButton: React.FC = observer(() => {
 
   const handleOpen = () => {
-    configStore.setShowGithubInfo(true);
+    if (configStore.hasSavedRepoDetails) {
+      configStore.setShowGithubInfo(true);
+    } else {
+      configStore.setShowGithubRepoDetails(true);
+    }
   }
 
   return (

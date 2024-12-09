@@ -9,7 +9,7 @@ type PullRequest struct {
 	Number    int     `json:"number"`
 	Url       string  `json:"url"`
 	State     string  `json:"state"`
-	Author    *Author `json:"user"`
+	Author    *Author `json:"author"`
 	CreatedAt string  `json:"createdAt"`
 }
 

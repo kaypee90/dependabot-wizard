@@ -1,5 +1,4 @@
 import { makeAutoObservable } from "mobx";
-import { PullRequest } from "../models/pull-request";
 
 class ConfigurationStore {
   yamlData: string = "";
@@ -14,8 +13,6 @@ class ConfigurationStore {
   showGithubInfo: boolean = false;
   showGithubRepoDetails: boolean = false;
   hasSavedRepoDetails: boolean = false;
-
-  pullRequests: PullRequest[] = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -46,10 +43,6 @@ class ConfigurationStore {
 
   setHasSavedRepoDetails(hasSaved: boolean) {
     this.hasSavedRepoDetails = hasSaved;
-  }
-
-  setPullRequests(prs: PullRequest[]) {
-    this.pullRequests = prs;
   }
 }
 
