@@ -15,7 +15,6 @@ export default function ButtonAppBar() {
     },
   });
 
-
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
