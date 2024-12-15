@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { configStore } from '../store/configuration-store';
 import { Button } from "@mui/material";
 import Snackbar from '@mui/material/Snackbar';
+import { postAsync } from "../api/api-client";
 
 const CreateYamlFile: React.FC = observer(() => {
   const [open, setOpen] = React.useState(false);
@@ -26,13 +27,8 @@ const CreateYamlFile: React.FC = observer(() => {
 
   const handlePostRequest = async (data: string) => {
     try {
-      const response = await fetch('http://localhost:3001/api/configurations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ configuration: data })
-      });
+      const payload = { configuration: data };
+      const response = await postAsync(payload, "configurations");
 
       if (!response.ok) {
         throw new Error(`Error! status: ${response.status}`);

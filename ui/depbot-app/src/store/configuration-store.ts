@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { PullRequest } from "../models/pull-request";
 
 class ConfigurationStore {
   yamlData: string = "";
@@ -9,6 +10,12 @@ class ConfigurationStore {
   reviewer: string = "";
   openPrLimit: string = "";
   label: string = "";
+
+  showGithubInfo: boolean = false;
+  showGithubRepoDetails: boolean = false;
+  hasSavedRepoDetails: boolean = false;
+
+  pullRequests: PullRequest[] = [];
 
   constructor() {
     makeAutoObservable(this);
@@ -27,6 +34,22 @@ class ConfigurationStore {
     if (newYamlData.trim()) {
       this.yamlData = newYamlData.trim() + "\n";
     }
+  }
+
+  setShowGithubInfo(showInfo: boolean) {
+    this.showGithubInfo = showInfo;
+  }
+
+  setShowGithubRepoDetails(showDetails: boolean) {
+    this.showGithubRepoDetails = showDetails;
+  }
+
+  setHasSavedRepoDetails(hasSaved: boolean) {
+    this.hasSavedRepoDetails = hasSaved;
+  }
+
+  setPullRequests(prs: PullRequest[]) {
+    this.pullRequests = prs;
   }
 }
 
