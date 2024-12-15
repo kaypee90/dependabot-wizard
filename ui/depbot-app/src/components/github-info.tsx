@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -12,10 +12,10 @@ import { TransitionProps } from '@mui/material/transitions';
 import { observer } from 'mobx-react-lite';
 import { configStore } from '../store/configuration-store';
 import PullRequestCount from './pull-request-count';
-import PullRequestBarGraph from './pull-request-bar-graph';
 import PullRequestLineGraph from './pull-request-line-graph';
 import PullRequestDataGrid from './pull-request-data-grid';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { PullRequestState } from '../models/pull-request';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -42,6 +42,24 @@ export const GithubInfo: React.FC = observer(() => {
   const [merged, setMerged] = useState(0);
   const [closed, setClosed] = useState(0);
 
+  useEffect(() => {
+    if (configStore.pullRequests.length === 0) {
+      return;
+    }
+
+    const all = configStore.pullRequests.length;
+    setAll(all);
+
+    const opened = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.OPEN).length;
+    setOpened(opened);
+
+    const merged = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.MERGED).length;
+    setMerged(merged);
+
+    const closed = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.CLOSED).length;
+    setClosed(closed);
+  }, [configStore.pullRequests]);
+
   return (
     <ThemeProvider theme={lightTheme}>
       <React.Fragment>
@@ -55,7 +73,7 @@ export const GithubInfo: React.FC = observer(() => {
             <Toolbar>
 
               <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                GITHUB INFO
+                DEPENDABOT PRs
               </Typography>
               <IconButton
                 edge="start"
@@ -73,21 +91,18 @@ export const GithubInfo: React.FC = observer(() => {
                 <PullRequestCount title="All" count={all} />
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
-                <PullRequestCount title="Opened" count={opened} />            </Grid>
+                <PullRequestCount title="Opened" count={opened} />
+              </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
-                <PullRequestCount title="Closed" count={closed} />             </Grid>
+                <PullRequestCount title="Closed" count={closed} />
+              </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
                 <PullRequestCount title="Merged" count={merged} />
               </Grid>
             </Grid>
 
             <Grid container spacing={1} sx={{ marginTop: '2vh', marginLeft: '4vh', marginRight: '1vh' }}>
-              <Grid size={{ xs: 6, md: 6 }}>
-                <PullRequestBarGraph />
-              </Grid>
-              <Grid size={{ xs: 6, md: 6 }}>
-                <PullRequestLineGraph />
-              </Grid>
+              <PullRequestLineGraph />
             </Grid>
 
             <Grid container spacing={1} sx={{ marginTop: '2vh', marginLeft: '4vh', marginRight: '1vh' }}>

@@ -11,3 +11,10 @@ export type PullRequest = {
   createdAt: string
   author: Author
 }
+
+export class PullRequestState {
+  static OPEN = 'open';
+  static MERGED = 'merged';
+  static CLOSED = 'closed';
+}
+

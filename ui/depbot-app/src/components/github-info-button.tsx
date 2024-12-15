@@ -14,7 +14,7 @@ export const GithubInfoButton: React.FC = observer(() => {
   }
 
   return (
-    <Button color="inherit" onClick={handleOpen}>Github Info</Button>
+    <Button color="inherit" onClick={handleOpen}>Pull Requests</Button>
   );
 });
 

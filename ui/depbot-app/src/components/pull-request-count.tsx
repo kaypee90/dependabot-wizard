@@ -10,7 +10,7 @@ type PullRequestCountProps = {
 
 const PullRequestCount: React.FC<PullRequestCountProps> = ({ title, count }: PullRequestCountProps) => {
   return (
-    <Card sx={{ maxWidth: 300, paddingLeft: '2.5vh', paddingRight: '1.5vh' }}>
+    <Card sx={{ paddingLeft: '2.5vh', paddingRight: '2.5vh' }}>
       <CardActionArea>
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
