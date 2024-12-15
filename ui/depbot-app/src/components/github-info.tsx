@@ -55,7 +55,7 @@ export const GithubInfo: React.FC = observer(() => {
 
     const closed = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.CLOSED).length;
     setClosed(closed);
-  }, []);
+  }, [configStore.pullRequests]);
 
   return (
     <ThemeProvider theme={lightTheme}>
