@@ -9,18 +9,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { observer } from 'mobx-react-lite';
 import { configStore } from '../store/configuration-store';
 import { fetchPullRequests } from '../api/api-client';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { lightTheme } from '../utils/theme'
 
 export const GithubRepoDetails: React.FC = observer(() => {
   const handleClose = () => {
     configStore.setShowGithubRepoDetails(false);
   };
-
-  const lightTheme = createTheme({
-    palette: {
-      mode: 'light',
-    },
-  });
 
   return (
     <ThemeProvider theme={lightTheme}>

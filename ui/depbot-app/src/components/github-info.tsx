@@ -14,7 +14,8 @@ import { configStore } from '../store/configuration-store';
 import PullRequestCount from './pull-request-count';
 import PullRequestLineGraph from './pull-request-line-graph';
 import PullRequestDataGrid from './pull-request-data-grid';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { lightTheme } from '../utils/theme';
 import { PullRequestState } from '../models/pull-request';
 
 const Transition = React.forwardRef(function Transition(
@@ -31,11 +32,7 @@ export const GithubInfo: React.FC = observer(() => {
     configStore.setShowGithubInfo(false);
   };
 
-  const lightTheme = createTheme({
-    palette: {
-      mode: 'light',
-    },
-  });
+
 
   const [all, setAll] = useState(0);
   const [opened, setOpened] = useState(0);
@@ -58,7 +55,7 @@ export const GithubInfo: React.FC = observer(() => {
 
     const closed = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.CLOSED).length;
     setClosed(closed);
-  }, [configStore.pullRequests]);
+  }, []);
 
   return (
     <ThemeProvider theme={lightTheme}>

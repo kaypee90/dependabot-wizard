@@ -16,9 +16,7 @@ const PullRequestLineGraph = () => {
     const prGroupedByDate = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
       const createdDate = pr.createdAt.split('T')[0];
       if (!acc[createdDate]) {
-        {
-          acc[createdDate] = 1;
-        }
+        acc[createdDate] = 1;
       } else {
         acc[createdDate]++;
       }
@@ -30,7 +28,7 @@ const PullRequestLineGraph = () => {
     const values = Object.values(prGroupedByDate);
     setData(values);
     setXLabels(labels);
-  }, [configStore.pullRequests]);
+  }, []);
 
   return (
     <LineChart

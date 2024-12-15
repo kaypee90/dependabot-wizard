@@ -1,6 +1,5 @@
-import React from 'react';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
+import Grid from '@mui/material/Grid2';
 
 import PackageEcosystem from './package-ecosystem';
 import ConfigDivider from './config-divider';
@@ -11,17 +10,15 @@ export function MainConfiguration() {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Grid sx={{ height: '98vh' }} container spacing={1}>
-        <Grid sx={{ background: '#0E2535' }} item xs={6}>
-          <div>
-            <ConfigDivider />
-            <PackageEcosystem />
-            <ConfigDivider />
-            <CreateYamlFile />
-          </div>
+      <Grid container spacing={1} sx={{ height: '98vh' }}>
+        <Grid sx={{ background: '#0E2535' }} size={{ xs: 6, md: 6 }}>
+          <ConfigDivider />
+          <PackageEcosystem />
+          <ConfigDivider />
+          <CreateYamlFile />
         </Grid>
 
-        <Grid item xs={6} sx={{ marginTop: '1.5vh', background: '#fff', color: '#000' }}>
+        <Grid size={{ xs: 6, md: 6 }} sx={{ background: '#fff', color: '#000' }}>
           <ConfigYaml />
         </Grid>
       </Grid>

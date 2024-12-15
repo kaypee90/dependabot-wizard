@@ -44,7 +44,7 @@ const PullRequestDataGrid = () => {
 
   useEffect(() => {
     setRows(configStore.pullRequests);
-  }, [configStore.pullRequests]);
+  }, []);
 
   return (
     <Box sx={{ height: 400, width: '100%' }}>
