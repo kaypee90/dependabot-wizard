@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const version = "2.0.0"
+const version = "1.1.1"
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
