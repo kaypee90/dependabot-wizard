@@ -33,6 +33,7 @@ func launchWebApplication() {
 
 	time.Sleep(1 * time.Second)
 
+	// open the web application in the default browser
 	openBrowser("http://127.0.0.1:3001/static/static/")
 
 	select {}
