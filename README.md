@@ -22,6 +22,11 @@ for the cases where it stops being that:
 - **It refuses to write an invalid config.** Every config is parsed back and checked — version,
   ecosystem names, directory format, schedule interval, no empty reviewer or label entries — before
   anything reaches disk. An unparseable file is rejected with the reason, not written.
+- **It controls the pull request volume.** Grouping and `ignore` rules are the two settings that
+  decide whether a repository gets a reviewable stream of updates or a queue nobody touches, and
+  they are the ones people most often get wrong by hand. Depbot offers them as named choices —
+  batch all minor and patch updates, split production from development, skip major versions — and
+  validates the result.
 - **It shows you whether Dependabot is working.** The web UI charts your dependency pull requests, and
   the [GitHub Action](#github-action) posts the same summary on a schedule. That is the question the
   config leads to, and GitHub makes you click through a PR list to answer it. Pull requests are found
@@ -84,7 +89,9 @@ Use this detected configuration? [yes/no]
 ```
 
 Answer `yes` and you are asked only for the schedule and pull request limit. Answer `no` and you get
-the original question-by-question flow, one ecosystem at a time.
+the original question-by-question flow, one ecosystem at a time. Either way it then asks how updates
+should be batched and whether to open major version bumps at all — the two settings that decide the
+volume you will actually receive.
 
 The result is written to `.github/dependabot.yml`, creating the directory if needed. Running inside
 `.github` writes alongside you instead.
@@ -128,17 +135,41 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 5
+  groups:
+    all-minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
 - package-ecosystem: npm
   directory: /ui/web
   schedule:
     interval: weekly
   open-pull-requests-limit: 5
+  groups:
+    all-minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
 - package-ecosystem: github-actions
   directory: /
   schedule:
     interval: weekly
   open-pull-requests-limit: 5
+  groups:
+    all-minor-and-patch:
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
 ```
+
+Grouping collapses what would otherwise be one pull request per dependency. On a repository with
+three ecosystems that is often the difference between three pull requests a week and thirty.
 
 ## GitHub Action
 
@@ -176,12 +207,34 @@ It produces:
 > | Merged | 4 |
 > | Closed without merging | 1 |
 > | Merge rate | 80% |
-> | Oldest open | [#61](https://github.com/kaypee90/zebrok/pull/61), 34 days |
+> | Median time to merge | 1 day |
+> | Open longer than 30 days | 1 |
+> | Opened in the last 30 days | 2 |
+> | Merged in the last 30 days | 2 |
 >
-> 3 open, 80% of resolved pull requests merged. This repository is keeping up.
+> ### By ecosystem
+>
+> | Ecosystem | Total | Open | Merged | Closed | Merge rate |
+> | --- | ---: | ---: | ---: | ---: | ---: |
+> | `npm` | 5 | 2 | 2 | 1 | 67% |
+> | `gomod` | 2 | 1 | 1 | 0 | 100% |
+> | `github-actions` | 1 | 0 | 1 | 0 | 100% |
+>
+> ### Waiting longest
+>
+> | Pull request | Ecosystem | Age |
+> | --- | --- | ---: |
+> | [#61](https://github.com/kaypee90/zebrok/pull/61) Bump webpack from 5.88.0 to 5.94.0 | `npm` | 34 days |
+> | [#63](https://github.com/kaypee90/zebrok/pull/63) Bump eslint from 8.50.0 to 9.9.0 | `npm` | 12 days |
+> | [#64](https://github.com/kaypee90/zebrok/pull/64) Bump golang.org/x/net from 0.17.0 to 0.28.0 | `gomod` | 3 days |
+>
+> ### What to do
+>
+> **1 pull request has been open longer than 30 days.** Those branches have drifted and the updates they carry are probably superseded; closing them costs nothing because dependabot reopens what is still needed. Lowering `open-pull-requests-limit` keeps the queue at a size that gets reviewed.
 
-The closing line changes with the numbers: a queue nobody is reviewing, a merge rate low enough to
-suggest `ignore` rules, or a backlog large enough to suggest `groups`.
+Every finding under **What to do** names the configuration that addresses it, and the YAML is
+rendered from the same model the generator writes — so the recommendation cannot drift from what
+`depbot` would actually produce. Paste it, or re-run `depbot` and pick the matching option.
 
 ### Inputs and outputs
 
@@ -198,7 +251,8 @@ narrow further.
 | `author` | `app/dependabot` | Pull request author to count |
 | `label` | *(none)* | Optional extra narrowing by label |
 
-Outputs `total`, `open`, `merged`, `closed` and `merge-rate`, so you can gate on them:
+Outputs `total`, `open`, `merged`, `closed`, `merge-rate`, `stale` and `median-merge-days`, so you
+can gate on them:
 
 ```yaml
       - uses: kaypee90/dependabot-wizard@v1

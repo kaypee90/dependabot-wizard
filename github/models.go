@@ -11,6 +11,13 @@ type PullRequest struct {
 	State     string  `json:"state"`
 	Author    *Author `json:"author"`
 	CreatedAt string  `json:"createdAt"`
+	MergedAt  string  `json:"mergedAt"`
+	ClosedAt  string  `json:"closedAt"`
+	// HeadRefName is dependabot's branch, e.g.
+	// "dependabot/npm_and_yarn/ui/web/lodash-4.17.21". The second segment is
+	// the ecosystem, which is the only reliable way to attribute a pull
+	// request to a package manager without a second API call.
+	HeadRefName string `json:"headRefName"`
 }
 
 // AuthorLogin is the pull request's author, or an empty string when GitHub

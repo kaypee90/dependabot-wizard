@@ -1,4 +1,4 @@
-import { renderConfig, UpdateBlock } from './config-generator';
+import { renderConfig, UpdateBlock, groupsFor, ignoreMajorUpdates } from './config-generator';
 
 const baseUpdate: UpdateBlock = {
   packageEcosystem: 'npm',
@@ -72,5 +72,70 @@ describe('renderConfig', () => {
 
   it('returns nothing when there is no update to render', () => {
     expect(renderConfig([])).toBe('');
+  });
+});
+
+describe('grouping and ignore rules', () => {
+  it('renders the all-minor-and-patch group', () => {
+    const rendered = renderConfig([{ ...baseUpdate, groups: groupsFor('all') }]);
+
+    expect(rendered).toContain([
+      '  groups:',
+      '    all-minor-and-patch:',
+      '      patterns:',
+      '      - "*"',
+      '      update-types:',
+      '      - minor',
+      '      - patch',
+    ].join('\n'));
+  });
+
+  it('renders production and development groups in a stable order', () => {
+    const rendered = renderConfig([{ ...baseUpdate, groups: groupsFor('by-dependency-type') }]);
+
+    // Sorted by name, so the output does not churn between renders.
+    expect(rendered.indexOf('development-dependencies')).toBeLessThan(
+      rendered.indexOf('production-dependencies'),
+    );
+    expect(rendered).toContain('      dependency-type: production');
+    expect(rendered).toContain('      dependency-type: development');
+  });
+
+  it('renders nothing for the none strategy', () => {
+    const rendered = renderConfig([{ ...baseUpdate, groups: groupsFor('none') }]);
+
+    expect(rendered).not.toContain('groups:');
+  });
+
+  it('renders the ignore rule for major versions', () => {
+    const rendered = renderConfig([{ ...baseUpdate, ignore: ignoreMajorUpdates() }]);
+
+    expect(rendered).toContain([
+      '  ignore:',
+      '  - dependency-name: "*"',
+      '    update-types:',
+      '    - version-update:semver-major',
+    ].join('\n'));
+  });
+
+  it('places groups and ignore after the simple keys', () => {
+    const rendered = renderConfig([{
+      ...baseUpdate,
+      labels: ['deps'],
+      groups: groupsFor('all'),
+      ignore: ignoreMajorUpdates(),
+    }]);
+
+    expect(rendered.indexOf('labels:')).toBeLessThan(rendered.indexOf('groups:'));
+    expect(rendered.indexOf('groups:')).toBeLessThan(rendered.indexOf('ignore:'));
+  });
+
+  it('applies the same rules to every detected ecosystem', () => {
+    const rendered = renderConfig([
+      { ...baseUpdate, groups: groupsFor('all') },
+      { ...baseUpdate, packageEcosystem: 'gomod', groups: groupsFor('all') },
+    ]);
+
+    expect(rendered.match(/all-minor-and-patch:/g)).toHaveLength(2);
   });
 });

@@ -3,6 +3,7 @@ import Stack from '@mui/material/Stack';
 
 import PackageEcosystem from './package-ecosystem';
 import ProjectScan from './project-scan';
+import NoiseControl from './noise-control';
 import ConfigYaml from './config-yaml';
 import CreateYamlFile from './create-yaml-file';
 
@@ -26,6 +27,7 @@ export function MainConfiguration() {
       <Stack spacing={2}>
         <ProjectScan />
         <PackageEcosystem />
+        <NoiseControl />
         <CreateYamlFile />
       </Stack>
 

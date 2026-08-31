@@ -61,6 +61,9 @@ const searchQueryTemplate = `query($search: String!) {
             login
           }
           createdAt
+          mergedAt
+          closedAt
+          headRefName
         }
       }
     }

@@ -1,5 +1,19 @@
 import { configStore } from "../store/configuration-store";
 
+export type Group = {
+  dependencyType?: string;
+  patterns?: string[];
+  updateTypes?: string[];
+};
+
+export type IgnoreRule = {
+  dependencyName: string;
+  updateTypes?: string[];
+};
+
+/** Named, ready-made grouping configurations. Mirrors the Go definitions. */
+export type GroupingStrategy = 'none' | 'all' | 'by-dependency-type';
+
 export type UpdateBlock = {
   packageEcosystem: string;
   directory: string;
@@ -7,7 +21,45 @@ export type UpdateBlock = {
   reviewers: string[];
   openPullRequestsLimit?: number;
   labels: string[];
+  groups?: Record<string, Group>;
+  ignore?: IgnoreRule[];
 };
+
+export const GROUPING_LABELS: Record<GroupingStrategy, string> = {
+  'none': 'No grouping — one pull request per dependency',
+  'all': 'All minor and patch updates together, majors separate',
+  'by-dependency-type': 'Production and development dependencies separately',
+};
+
+/**
+ * Grouping is the single biggest reducer of pull request volume, which is why
+ * the health report recommends it and why it is offered here: the diagnosis
+ * and the fix belong in the same tool.
+ */
+export const groupsFor = (strategy: GroupingStrategy): Record<string, Group> | undefined => {
+  switch (strategy) {
+    case 'all':
+      return {
+        'all-minor-and-patch': { patterns: ['*'], updateTypes: ['minor', 'patch'] },
+      };
+    case 'by-dependency-type':
+      return {
+        'production-dependencies': {
+          dependencyType: 'production', patterns: ['*'], updateTypes: ['minor', 'patch'],
+        },
+        'development-dependencies': {
+          dependencyType: 'development', patterns: ['*'], updateTypes: ['minor', 'patch'],
+        },
+      };
+    default:
+      return undefined;
+  }
+};
+
+/** Stop opening major bumps, and take them deliberately instead. */
+export const ignoreMajorUpdates = (): IgnoreRule[] => ([
+  { dependencyName: '*', updateTypes: ['version-update:semver-major'] },
+]);
 
 const INDENT = "  ";
 
@@ -35,6 +87,42 @@ const sequence = (key: string, values: string[], indent: string): string[] => {
   ];
 };
 
+const renderGroups = (groups: Record<string, Group>, indent: string): string[] => {
+  const names = Object.keys(groups).sort();
+  if (names.length === 0) {
+    return [];
+  }
+
+  const lines = [indent + 'groups:'];
+  names.forEach((name) => {
+    const group = groups[name];
+    const inner = indent + INDENT;
+    lines.push(inner + scalar(name) + ':');
+
+    if (group.dependencyType) {
+      lines.push(inner + INDENT + 'dependency-type: ' + scalar(group.dependencyType));
+    }
+    lines.push(...sequence('patterns', group.patterns ?? [], inner + INDENT));
+    lines.push(...sequence('update-types', group.updateTypes ?? [], inner + INDENT));
+  });
+
+  return lines;
+};
+
+const renderIgnore = (rules: IgnoreRule[], indent: string): string[] => {
+  if (rules.length === 0) {
+    return [];
+  }
+
+  const lines = [indent + 'ignore:'];
+  rules.forEach((rule) => {
+    lines.push(indent + '- dependency-name: ' + scalar(rule.dependencyName));
+    lines.push(...sequence('update-types', rule.updateTypes ?? [], indent + INDENT));
+  });
+
+  return lines;
+};
+
 export const renderUpdate = (update: UpdateBlock): string[] => {
   const indent = INDENT;
   const lines: string[] = [
@@ -51,6 +139,14 @@ export const renderUpdate = (update: UpdateBlock): string[] => {
   }
 
   lines.push(...sequence("labels", update.labels, indent));
+
+  if (update.groups) {
+    lines.push(...renderGroups(update.groups, indent));
+  }
+
+  if (update.ignore && update.ignore.length > 0) {
+    lines.push(...renderIgnore(update.ignore, indent));
+  }
 
   return lines;
 };
@@ -81,6 +177,11 @@ const parseLimit = (value: string): number | undefined => {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
 };
 
+const noiseControls = () => ({
+  groups: groupsFor(configStore.grouping),
+  ignore: configStore.ignoreMajor ? ignoreMajorUpdates() : undefined,
+});
+
 /** Builds the update blocks for whichever mode the user is in. */
 export const buildUpdates = (): UpdateBlock[] => {
   if (configStore.useDetected && configStore.detected.length > 0) {
@@ -94,6 +195,7 @@ export const buildUpdates = (): UpdateBlock[] => {
       reviewers: [configStore.reviewer],
       openPullRequestsLimit: limit,
       labels: [configStore.label],
+      ...noiseControls(),
     }));
   }
 
@@ -108,6 +210,7 @@ export const buildUpdates = (): UpdateBlock[] => {
     reviewers: [configStore.reviewer],
     openPullRequestsLimit: parseLimit(configStore.openPrLimit),
     labels: [configStore.label],
+    ...noiseControls(),
   }];
 };
 

@@ -39,6 +39,10 @@ outputs:
     description: 'Pull requests closed without merging.'
   merge-rate:
     description: 'Merged as a percentage of resolved pull requests.'
+  stale:
+    description: 'Pull requests open longer than 30 days.'
+  median-merge-days:
+    description: 'Median days from opening to merge.'
 
 runs:
   using: 'docker'

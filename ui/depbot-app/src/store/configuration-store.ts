@@ -1,6 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { PullRequest } from "../models/pull-request";
 import { DetectedEcosystem } from "../models/detected-ecosystem";
+import { GroupingStrategy } from "../components/config-generator";
 
 export type ScanState = "idle" | "scanning" | "done" | "failed";
 
@@ -21,6 +22,10 @@ class ConfigurationStore {
   pullRequests: PullRequest[] = [];
   /** What the server searched for, shown when nothing came back. */
   pullRequestFilter: string = "";
+
+  /** Repository-wide noise controls, applied to every update block. */
+  grouping: GroupingStrategy = "none";
+  ignoreMajor: boolean = false;
 
   detected: DetectedEcosystem[] = [];
   useDetected: boolean = false;
@@ -77,6 +82,14 @@ class ConfigurationStore {
 
   setUseDetected(useDetected: boolean) {
     this.useDetected = useDetected;
+  }
+
+  setGrouping(grouping: GroupingStrategy) {
+    this.grouping = grouping;
+  }
+
+  setIgnoreMajor(ignoreMajor: boolean) {
+    this.ignoreMajor = ignoreMajor;
   }
 
   /** True when there is enough information to write a file. */

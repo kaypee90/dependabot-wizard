@@ -169,6 +169,39 @@ func collectUpdatesFromDetection() ([]Update, error) {
 	return UpdatesFromDetection(detected, interval, openPullRequestsLimit), nil
 }
 
+// applyNoiseControls attaches the grouping and ignore rules to every update
+// block. These are repository-wide decisions rather than per-ecosystem ones,
+// so they are asked once and applied across the board.
+func applyNoiseControls(updates []Update, strategy GroupingStrategy, ignoreMajor bool) []Update {
+	groups := GroupsFor(strategy)
+
+	for index := range updates {
+		if len(groups) > 0 {
+			updates[index].Groups = groups
+		}
+		if ignoreMajor {
+			updates[index].Ignore = IgnoreMajorUpdates()
+		}
+	}
+
+	return updates
+}
+
+// askNoiseControls collects the grouping and major-update decisions.
+func askNoiseControls() (GroupingStrategy, bool, error) {
+	strategy, err := getGroupingStrategy()
+	if err != nil {
+		return GroupingNone, false, promptError(err)
+	}
+
+	ignoreMajor, err := getIgnoreMajorUpdates()
+	if err != nil {
+		return GroupingNone, false, promptError(err)
+	}
+
+	return strategy, ignoreMajor, nil
+}
+
 func pluralize(count int, singular string, plural string) string {
 	if count == 1 {
 		return singular
@@ -205,6 +238,12 @@ func launchCliApplication() error {
 			return err
 		}
 	}
+
+	strategy, ignoreMajor, err := askNoiseControls()
+	if err != nil {
+		return err
+	}
+	updates = applyNoiseControls(updates, strategy, ignoreMajor)
 
 	config := Config{
 		Version: 2,

@@ -135,6 +135,44 @@ func getLabel() (string, error) {
 	return strings.TrimSpace(result), err
 }
 
+// getGroupingStrategy asks how to batch updates. Grouping is the single
+// biggest reducer of pull request volume, so it is worth asking about rather
+// than leaving people to discover it after the queue is unmanageable.
+func getGroupingStrategy() (GroupingStrategy, error) {
+	items := make([]string, 0, len(supportedGroupingStrategies))
+	for _, strategy := range supportedGroupingStrategies {
+		items = append(items, DescribeGrouping(strategy))
+	}
+
+	prompt := promptui.Select{
+		Label: "How should updates be batched?",
+		Items: items,
+		Size:  len(items),
+	}
+
+	index, _, err := prompt.Run()
+	if err != nil {
+		return GroupingNone, err
+	}
+
+	return supportedGroupingStrategies[index], nil
+}
+
+// getIgnoreMajorUpdates asks whether to stop opening major version bumps.
+func getIgnoreMajorUpdates() (bool, error) {
+	prompt := promptui.Select{
+		Label: "Open pull requests for major version updates?",
+		Items: []string{YES, NO},
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		return false, err
+	}
+
+	return result == NO, nil
+}
+
 func addAdditionalPackageManager() (string, error) {
 	prompt := promptui.Select{
 		Label: "Do you want to add another package manager?",
