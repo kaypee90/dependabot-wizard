@@ -15,13 +15,19 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { configStore } from '../store/configuration-store';
 import { fetchDetectedEcosystems } from '../api/api-client';
 import { generateYaml } from './config-generator';
+import { isStaticBuild, CLI_INSTALL_COMMAND } from '../utils/runtime';
 
 /**
  * Scans the project depbot was started in and offers the ecosystems it found.
  * This is the path that produces a complete multi-ecosystem config; the manual
  * form below it still handles a single block by hand.
+ *
+ * Scanning reads the filesystem, so it only exists when a depbot binary is
+ * serving the page. The static build explains that instead of failing.
  */
 const ProjectScan: React.FC = observer(() => {
+  const staticBuild = isStaticBuild();
+
   const scan = React.useCallback(async () => {
     configStore.setScanState('scanning');
     try {
@@ -47,43 +53,67 @@ const ProjectScan: React.FC = observer(() => {
         <Typography>Scan This Project</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Typography variant="body2" sx={{ mb: 2, color: '#B7C4CD' }}>
-          Look for package manifests in the directory depbot was started in and build a
-          configuration covering every ecosystem found.
-        </Typography>
-
-        <Button variant="outlined" color="inherit" onClick={scan} disabled={scanState === 'scanning'}>
-          {scanState === 'scanning' ? 'Scanning…' : 'Scan project'}
-        </Button>
-
-        {scanState === 'failed' && (
-          <Alert severity="error" sx={{ mt: 2 }}>{scanError}</Alert>
-        )}
-
-        {scanState === 'done' && detected.length === 0 && (
-          <Alert severity="info" sx={{ mt: 2 }}>
-            No package manifests found here. Fill in the form below instead.
-          </Alert>
-        )}
-
-        {detected.length > 0 && (
+        {staticBuild ? (
           <>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
-              {detected.map((item) => (
-                <Chip
-                  key={`${item.ecosystem}:${item.directory}`}
-                  label={`${item.ecosystem} · ${item.directory}`}
-                  title={`Found ${item.evidence}`}
-                  size="small"
-                  sx={{ background: '#1B3A50', color: '#fff' }}
+            <Typography variant="body2" sx={{ mb: 2, color: '#B7C4CD' }}>
+              Scanning reads the files in your project, which a web page cannot do. Run depbot
+              locally and it will find every package manifest and build the whole configuration
+              for you.
+            </Typography>
+            <Typography
+              component="pre"
+              sx={{
+                background: '#0A1B27', color: '#C6D6E0', p: 1.5, borderRadius: 1,
+                fontSize: '0.78rem', overflowX: 'auto', m: 0,
+              }}
+            >
+              {CLI_INSTALL_COMMAND}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 2, color: '#B7C4CD' }}>
+              Meanwhile, fill in the form below and copy the result.
+            </Typography>
+          </>
+        ) : (
+          <>
+            <Typography variant="body2" sx={{ mb: 2, color: '#B7C4CD' }}>
+              Look for package manifests in the directory depbot was started in and build a
+              configuration covering every ecosystem found.
+            </Typography>
+
+            <Button variant="outlined" color="inherit" onClick={scan} disabled={scanState === 'scanning'}>
+              {scanState === 'scanning' ? 'Scanning…' : 'Scan project'}
+            </Button>
+
+            {scanState === 'failed' && (
+              <Alert severity="error" sx={{ mt: 2 }}>{scanError}</Alert>
+            )}
+
+            {scanState === 'done' && detected.length === 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                No package manifests found here. Fill in the form below instead.
+              </Alert>
+            )}
+
+            {detected.length > 0 && (
+              <>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
+                  {detected.map((item) => (
+                    <Chip
+                      key={`${item.ecosystem}:${item.directory}`}
+                      label={`${item.ecosystem} · ${item.directory}`}
+                      title={`Found ${item.evidence}`}
+                      size="small"
+                      sx={{ background: '#1B3A50', color: '#fff' }}
+                    />
+                  ))}
+                </Stack>
+                <FormControlLabel
+                  sx={{ mt: 1 }}
+                  control={<Switch checked={useDetected} onChange={toggleUseDetected} />}
+                  label={`Use these ${detected.length} ecosystems`}
                 />
-              ))}
-            </Stack>
-            <FormControlLabel
-              sx={{ mt: 1 }}
-              control={<Switch checked={useDetected} onChange={toggleUseDetected} />}
-              label={`Use these ${detected.length} ecosystems`}
-            />
+              </>
+            )}
           </>
         )}
       </AccordionDetails>

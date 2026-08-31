@@ -23,9 +23,14 @@ const (
   --version  -v  Display app version
   --web      -w  Start web application
   --port         Port for the web application (default 3001)
+  --report       Print a dependabot health report for a repository
+  --owner        Repository owner, with --report
+  --repo         Repository name, with --report
+  --label        Pull request label to count, with --report (default "dependencies")
 
   Environment:
   DEPBOT_NO_BROWSER  Set to any value to keep --web from opening a browser
+  GITHUB_TOKEN       Token with repo scope, required by --report
 `
 )
 

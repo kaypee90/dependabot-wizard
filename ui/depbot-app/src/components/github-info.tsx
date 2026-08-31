@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -32,30 +32,16 @@ export const GithubInfo: React.FC = observer(() => {
     configStore.setShowGithubInfo(false);
   };
 
+  // Derived during render rather than copied into state by an effect: this
+  // component observes the store, so a second fetch updates the counts on
+  // its own. The effect version left them showing the previous repository.
+  const countOf = (state: string) =>
+    configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === state).length;
 
-
-  const [all, setAll] = useState(0);
-  const [opened, setOpened] = useState(0);
-  const [merged, setMerged] = useState(0);
-  const [closed, setClosed] = useState(0);
-
-  useEffect(() => {
-    if (configStore.pullRequests.length === 0) {
-      return;
-    }
-
-    const all = configStore.pullRequests.length;
-    setAll(all);
-
-    const opened = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.OPEN).length;
-    setOpened(opened);
-
-    const merged = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.MERGED).length;
-    setMerged(merged);
-
-    const closed = configStore.pullRequests.filter((pr) => pr.state.toLowerCase() === PullRequestState.CLOSED).length;
-    setClosed(closed);
-  }, [configStore.pullRequests]);
+  const all = configStore.pullRequests.length;
+  const opened = countOf(PullRequestState.OPEN);
+  const merged = countOf(PullRequestState.MERGED);
+  const closed = countOf(PullRequestState.CLOSED);
 
   return (
     <ThemeProvider theme={lightTheme}>

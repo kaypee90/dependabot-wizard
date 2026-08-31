@@ -1,25 +1,18 @@
-import { useMemo } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { observer } from 'mobx-react-lite';
 import { PullRequest } from '../models/pull-request';
 import { configStore } from '../store/configuration-store';
 
 const PullRequestLineGraph = observer(() => {
-  const { labels, values } = useMemo(() => {
-    const grouped = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
-      const createdDate = pr.createdAt.split('T')[0];
-      acc[createdDate] = (acc[createdDate] ?? 0) + 1;
-      return acc;
-    }, {});
+  const grouped = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
+    const createdDate = pr.createdAt.split('T')[0];
+    acc[createdDate] = (acc[createdDate] ?? 0) + 1;
+    return acc;
+  }, {});
 
-    // Sort by date so the x-axis reads left to right in time order.
-    const sortedDates = Object.keys(grouped).sort();
-
-    return {
-      labels: sortedDates,
-      values: sortedDates.map((date) => grouped[date]),
-    };
-  }, [configStore.pullRequests]);
+  // Sort by date so the x-axis reads left to right in time order.
+  const labels = Object.keys(grouped).sort();
+  const values = labels.map((date) => grouped[date]);
 
   return (
     <LineChart

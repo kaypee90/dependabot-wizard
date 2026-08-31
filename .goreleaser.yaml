@@ -1,0 +1,66 @@
+# Run `goreleaser check` after editing, and `goreleaser release --snapshot
+# --clean` to produce artifacts locally without publishing.
+version: 2
+
+project_name: depbot
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: depbot
+    main: ./cmd/depbot
+    binary: depbot
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: depbot
+    # No version in the name, so
+    # /releases/latest/download/depbot_linux_amd64.tar.gz always resolves.
+    name_template: >-
+      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: '{{ incpatch .Version }}-next'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+# Homebrew tap. Enable once the tap repository exists, otherwise every
+# release will fail trying to push to it:
+#
+#   1. Create a public repository named `homebrew-tap` under the same owner.
+#   2. Add a HOMEBREW_TAP_TOKEN secret with contents:write on that repository.
+#   3. Uncomment the block below and add the token to the release workflow.
+#
+# brews:
+#   - name: depbot
+#     repository:
+#       owner: kaypee90
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+#     homepage: "https://github.com/kaypee90/dependabot-wizard"
+#     description: "Generate and validate dependabot.yml for every ecosystem in your repo"
+#     license: "MIT"

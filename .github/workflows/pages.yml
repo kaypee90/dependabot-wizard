@@ -1,0 +1,63 @@
+name: Deploy wizard to Pages
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'ui/depbot-app/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; do not cancel a run that is mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static wizard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui/depbot-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build
+        env:
+          # Static mode: no depbot server behind the page, so the wizard
+          # offers the config for copying rather than writing it to disk.
+          REACT_APP_STATIC: 'true'
+          # Project pages are served from /<repository>.
+          PUBLIC_URL: '/${{ github.event.repository.name }}'
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ui/depbot-app/build
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -227,10 +227,14 @@ func launchCliApplication() error {
 
 func run() error {
 	var (
-		showVersion bool
-		startWebApp bool
-		displayHelp bool
-		port        int
+		showVersion  bool
+		startWebApp  bool
+		displayHelp  bool
+		reportHealth bool
+		port         int
+		owner        string
+		repo         string
+		label        string
 	)
 
 	flag.BoolVar(&showVersion, "version", false, "Display app version")
@@ -239,7 +243,11 @@ func run() error {
 	flag.BoolVar(&startWebApp, "w", false, "Start web application (shorthand)")
 	flag.BoolVar(&displayHelp, "help", false, "Display help text")
 	flag.BoolVar(&displayHelp, "h", false, "Display help text (shorthand)")
+	flag.BoolVar(&reportHealth, "report", false, "Print a dependabot health report for a repository")
 	flag.IntVar(&port, "port", 3001, "Port for the web application")
+	flag.StringVar(&owner, "owner", "", "Repository owner, for --report")
+	flag.StringVar(&repo, "repo", "", "Repository name, for --report")
+	flag.StringVar(&label, "label", "", "Pull request label to count, for --report (default \"dependencies\")")
 
 	flag.Usage = displayHelpText
 	flag.Parse()
@@ -251,6 +259,8 @@ func run() error {
 	case displayHelp:
 		displayHelpText()
 		return nil
+	case reportHealth:
+		return runReport(owner, repo, label)
 	case startWebApp:
 		return launchWebApplication(port)
 	default:

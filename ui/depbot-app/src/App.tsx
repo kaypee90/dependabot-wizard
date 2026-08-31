@@ -1,4 +1,3 @@
-
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -7,6 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 import { MainConfiguration, GithubInfoButton, GithubInfo, GithubRepoDetails } from './components';
+import { isStaticBuild } from './utils/runtime';
 
 export default function ButtonAppBar() {
   const darkTheme = createTheme({
@@ -14,6 +14,10 @@ export default function ButtonAppBar() {
       mode: 'dark',
     },
   });
+
+  // The pull request dashboard proxies through the local API, so it only
+  // exists when a depbot binary is serving the page.
+  const showDashboard = !isStaticBuild();
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -24,14 +28,13 @@ export default function ButtonAppBar() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Depbot
             </Typography>
-            <GithubInfoButton />
+            {showDashboard && <GithubInfoButton />}
           </Toolbar>
         </AppBar>
-        <GithubInfo />
-        <GithubRepoDetails />
+        {showDashboard && <GithubInfo />}
+        {showDashboard && <GithubRepoDetails />}
         <MainConfiguration />
       </Box>
     </ThemeProvider>
   );
 }
-

@@ -67,3 +67,40 @@ jobs:
 
     - name: Verify the embedded build is self-consistent
       run: ../../scripts/verify-embedded-assets.sh ../../cmd/depbot/static
+
+  action:
+    name: Action image
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # The Marketplace action runs from this image, so a broken Dockerfile or
+    # entrypoint has to fail here rather than in someone else's workflow.
+    - name: Build
+      run: docker build -t depbot-action:ci .
+
+    - name: Entrypoint responds
+      run: docker run --rm depbot-action:ci --version
+
+    - name: Missing token fails cleanly
+      run: |
+        if docker run --rm depbot-action:ci --report --owner o --repo r; then
+          echo "expected a non-zero exit without GITHUB_TOKEN"
+          exit 1
+        fi
+
+  self-report:
+    name: Dependabot health
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+    - uses: actions/checkout@v4
+
+    # Dogfooding: this repository reports on its own dependabot pull requests,
+    # which is also the smoke test that the action works as published.
+    - name: Report
+      uses: ./
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}

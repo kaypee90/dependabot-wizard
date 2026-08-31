@@ -33,6 +33,7 @@ func TestGetPullRequestsReturnsPullRequests(t *testing.T) {
 		// Owner and repo must travel as variables, not be interpolated.
 		assert.Equal(t, received.Variables["owner"], "kaypee90")
 		assert.Equal(t, received.Variables["repo"], "zebrok")
+		assert.Equal(t, received.Variables["label"], "dependencies")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"data":{"repository":{"pullRequests":{"edges":[
@@ -40,7 +41,7 @@ func TestGetPullRequestsReturnsPullRequests(t *testing.T) {
 		]}}}}`))
 	})
 
-	response, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", "test-token")
+	response, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", DefaultLabel, "test-token")
 
 	assert.NilError(t, err)
 	edges := response.Data.Repository.PullRequests.Edges
@@ -57,7 +58,7 @@ func TestGetPullRequestsSurfacesGraphqlErrors(t *testing.T) {
 		w.Write([]byte(`{"data":{"repository":null},"errors":[{"message":"Could not resolve to a Repository with the name 'kaypee90/missing'.","type":"NOT_FOUND"}]}`))
 	})
 
-	_, err := GetPullRequests(context.Background(), "kaypee90", "missing", "test-token")
+	_, err := GetPullRequests(context.Background(), "kaypee90", "missing", DefaultLabel, "test-token")
 
 	assert.ErrorContains(t, err, "Could not resolve to a Repository")
 }
@@ -68,7 +69,7 @@ func TestGetPullRequestsReportsAnUnauthorizedToken(t *testing.T) {
 		w.Write([]byte(`{"message":"Bad credentials"}`))
 	})
 
-	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", "expired-token")
+	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", DefaultLabel, "expired-token")
 
 	assert.ErrorContains(t, err, "401")
 }
@@ -79,7 +80,7 @@ func TestGetPullRequestsReportsMalformedJSON(t *testing.T) {
 		w.Write([]byte(`{"data":`))
 	})
 
-	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", "test-token")
+	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", DefaultLabel, "test-token")
 
 	assert.ErrorContains(t, err, "decoding response")
 }
@@ -89,7 +90,7 @@ func TestGetPullRequestsDoesNotPanicOnTransportFailure(t *testing.T) {
 	endpoint = "http://127.0.0.1:1"
 	t.Cleanup(func() { endpoint = previous })
 
-	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", "test-token")
+	_, err := GetPullRequests(context.Background(), "kaypee90", "zebrok", DefaultLabel, "test-token")
 
 	assert.ErrorContains(t, err, "calling GitHub")
 }

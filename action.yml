@@ -1,0 +1,51 @@
+name: 'Dependabot Health Report'
+description: 'Summarise how a repository is handling the pull requests Dependabot opens.'
+author: 'kaypee90'
+
+branding:
+  icon: 'activity'
+  color: 'blue'
+
+inputs:
+  token:
+    description: 'Token with repo scope used to read pull requests.'
+    required: true
+    default: ${{ github.token }}
+  owner:
+    description: 'Repository owner. Defaults to the repository running the workflow.'
+    required: false
+    default: ''
+  repo:
+    description: 'Repository name. Defaults to the repository running the workflow.'
+    required: false
+    default: ''
+  label:
+    description: 'Pull request label to count.'
+    required: false
+    default: 'dependencies'
+
+outputs:
+  total:
+    description: 'Total labelled pull requests found.'
+  open:
+    description: 'Pull requests still open.'
+  merged:
+    description: 'Pull requests merged.'
+  closed:
+    description: 'Pull requests closed without merging.'
+  merge-rate:
+    description: 'Merged as a percentage of resolved pull requests.'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    GITHUB_TOKEN: ${{ inputs.token }}
+  args:
+    - '--report'
+    - '--owner'
+    - ${{ inputs.owner }}
+    - '--repo'
+    - ${{ inputs.repo }}
+    - '--label'
+    - ${{ inputs.label }}

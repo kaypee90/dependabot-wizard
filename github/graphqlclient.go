@@ -16,9 +16,9 @@ const (
 	requestTimeout         = 30 * time.Second
 )
 
-const pullRequestQueryTemplate = `query($owner: String!, $repo: String!) {
+const pullRequestQueryTemplate = `query($owner: String!, $repo: String!, $label: String!) {
   repository(owner: $owner, name: $repo) {
-    pullRequests(states: [OPEN, CLOSED, MERGED], first: 100, labels: "dependencies") {
+    pullRequests(states: [OPEN, CLOSED, MERGED], first: 100, labels: [$label]) {
       edges {
         node {
           title
@@ -38,15 +38,23 @@ const pullRequestQueryTemplate = `query($owner: String!, $repo: String!) {
 // endpoint is a variable so tests can point the client at a stub server.
 var endpoint = defaultGraphqlEndpoint
 
-// GetPullRequests reads dependency pull requests for a repository. Owner and
-// repo travel as GraphQL variables rather than being interpolated into the
-// query string, so a name containing a quote cannot alter the query.
-func GetPullRequests(ctx context.Context, owner string, repo string, token string) (PullRequestResponse, error) {
+// DefaultLabel is the label dependabot applies to the pull requests it opens.
+const DefaultLabel = "dependencies"
+
+// GetPullRequests reads labelled pull requests for a repository. Owner, repo
+// and label travel as GraphQL variables rather than being interpolated into
+// the query string, so a value containing a quote cannot alter the query.
+func GetPullRequests(ctx context.Context, owner string, repo string, label string, token string) (PullRequestResponse, error) {
+	if label == "" {
+		label = DefaultLabel
+	}
+
 	query := PullRequestQuery{
 		Query: pullRequestQueryTemplate,
 		Variables: map[string]string{
 			"owner": owner,
 			"repo":  repo,
+			"label": label,
 		},
 	}
 

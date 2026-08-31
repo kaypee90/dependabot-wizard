@@ -94,7 +94,7 @@ func getPullRequestsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pullRequests, err := github.GetPullRequests(r.Context(), request.Owner, request.Repo, request.Token)
+	pullRequests, err := github.GetPullRequests(r.Context(), request.Owner, request.Repo, github.DefaultLabel, request.Token)
 	if err != nil {
 		log.Printf("fetching pull requests for %s/%s: %v", request.Owner, request.Repo, err)
 		writeError(w, http.StatusBadGateway, "Could not read pull requests from GitHub: "+err.Error())
