@@ -36,15 +36,28 @@ export const saveConfiguration = async (configuration: string): Promise<string> 
   return body.path as string;
 };
 
-export const fetchPullRequests = async (payload: any) => {
+export type PullRequestSearch = {
+  owner: string;
+  repo: string;
+  token: string;
+  /** Optional extra narrowing. Blank means any label, which is the default. */
+  label?: string;
+};
+
+export const fetchPullRequests = async (payload: PullRequestSearch) => {
   const response = await postAsync(payload, 'pull-requests');
 
   if (!response.ok) {
     throw new Error(await readError(response, `Could not load pull requests (status ${response.status}).`));
   }
 
+  // The server returns a flat list plus a description of what it searched
+  // for, so an empty result can explain itself rather than showing zeroes.
   const result = await response.json();
-  return result?.data?.repository?.pullRequests?.edges?.map((pr: any) => pr.node) ?? [];
+  return {
+    pullRequests: result?.pullRequests ?? [],
+    filter: result?.filter ?? '',
+  };
 };
 
 export const fetchDetectedEcosystems = async () => {

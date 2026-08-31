@@ -26,7 +26,8 @@ const (
   --report       Print a dependabot health report for a repository
   --owner        Repository owner, with --report
   --repo         Repository name, with --report
-  --label        Pull request label to count, with --report (default "dependencies")
+  --label        Only count pull requests with this label, with --report
+  --author       Pull request author to count, with --report (default "app/dependabot")
 
   Environment:
   DEPBOT_NO_BROWSER  Set to any value to keep --web from opening a browser

@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/kaypee90/dependabot-wizard/github"
 	"github.com/manifoldco/promptui"
 )
 
@@ -235,6 +236,7 @@ func run() error {
 		owner        string
 		repo         string
 		label        string
+		author       string
 	)
 
 	flag.BoolVar(&showVersion, "version", false, "Display app version")
@@ -247,7 +249,8 @@ func run() error {
 	flag.IntVar(&port, "port", 3001, "Port for the web application")
 	flag.StringVar(&owner, "owner", "", "Repository owner, for --report")
 	flag.StringVar(&repo, "repo", "", "Repository name, for --report")
-	flag.StringVar(&label, "label", "", "Pull request label to count, for --report (default \"dependencies\")")
+	flag.StringVar(&label, "label", "", "Only count pull requests with this label, for --report")
+	flag.StringVar(&author, "author", github.DefaultAuthor, "Pull request author to count, for --report")
 
 	flag.Usage = displayHelpText
 	flag.Parse()
@@ -260,7 +263,7 @@ func run() error {
 		displayHelpText()
 		return nil
 	case reportHealth:
-		return runReport(owner, repo, label)
+		return runReport(owner, repo, github.Filter{Author: author, Label: label})
 	case startWebApp:
 		return launchWebApplication(port)
 	default:

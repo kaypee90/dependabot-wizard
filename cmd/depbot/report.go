@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 type HealthReport struct {
 	Owner  string
 	Repo   string
-	Label  string
+	Filter github.Filter
 	Total  int
 	Open   int
 	Merged int
@@ -34,8 +33,8 @@ type HealthReport struct {
 
 // BuildHealthReport derives the summary from raw pull requests. It is a pure
 // function so the reporting logic is testable without touching the network.
-func BuildHealthReport(owner string, repo string, label string, pullRequests []github.PullRequest, now time.Time) HealthReport {
-	report := HealthReport{Owner: owner, Repo: repo, Label: label, Total: len(pullRequests)}
+func BuildHealthReport(owner string, repo string, filter github.Filter, pullRequests []github.PullRequest, now time.Time) HealthReport {
+	report := HealthReport{Owner: owner, Repo: repo, Filter: filter, Total: len(pullRequests)}
 
 	for index := range pullRequests {
 		pullRequest := pullRequests[index]
@@ -73,9 +72,9 @@ func (report HealthReport) Markdown() string {
 	fmt.Fprintf(&builder, "## Dependabot health: %s/%s\n\n", report.Owner, report.Repo)
 
 	if report.Total == 0 {
-		fmt.Fprintf(&builder, "No pull requests labelled `%s` were found.\n\n", report.Label)
-		fmt.Fprintf(&builder, "That usually means dependabot is not configured, or it is configured "+
-			"without that label. Run `depbot` in this repository to generate a configuration.\n")
+		fmt.Fprintf(&builder, "No pull requests %s were found.\n\n", report.Filter.Describe())
+		fmt.Fprintf(&builder, "That usually means dependabot is not configured for this repository yet. "+
+			"Run `depbot` here to generate a configuration.\n")
 		return builder.String()
 	}
 
@@ -116,23 +115,6 @@ func (report HealthReport) verdict() string {
 	}
 }
 
-// pullRequestsFromResponse flattens the GraphQL edge/node nesting.
-func pullRequestsFromResponse(response github.PullRequestResponse) []github.PullRequest {
-	edges := response.Data.Repository.PullRequests.Edges
-	pullRequests := make([]github.PullRequest, 0, len(edges))
-
-	for _, edge := range edges {
-		pullRequests = append(pullRequests, edge.Node)
-	}
-
-	// Newest first, so any listing reads in a predictable order.
-	sort.Slice(pullRequests, func(i, j int) bool {
-		return pullRequests[i].CreatedAt > pullRequests[j].CreatedAt
-	})
-
-	return pullRequests
-}
-
 // appendToFileFromEnv writes to the file named by an environment variable,
 // which is how GitHub Actions receives step summaries and outputs. A missing
 // variable simply means we are not running inside Actions.
@@ -158,7 +140,7 @@ func appendToFileFromEnv(variable string, content string) error {
 // runReport fetches the pull requests and emits the summary. It prints to
 // stdout always, and additionally feeds the GitHub Actions step summary and
 // outputs when those environment variables are present.
-func runReport(owner string, repo string, label string) error {
+func runReport(owner string, repo string, filter github.Filter) error {
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return fmt.Errorf("GITHUB_TOKEN is not set; the report needs a token with repo scope")
@@ -177,16 +159,12 @@ func runReport(owner string, repo string, label string) error {
 		return fmt.Errorf("both --owner and --repo are required outside GitHub Actions")
 	}
 
-	if label == "" {
-		label = github.DefaultLabel
-	}
-
-	response, err := github.GetPullRequests(context.Background(), owner, repo, label, token)
+	pullRequests, err := github.GetPullRequests(context.Background(), owner, repo, filter, token)
 	if err != nil {
 		return err
 	}
 
-	report := BuildHealthReport(owner, repo, label, pullRequestsFromResponse(response), time.Now())
+	report := BuildHealthReport(owner, repo, filter, pullRequests, time.Now())
 	markdown := report.Markdown()
 
 	fmt.Print(markdown)

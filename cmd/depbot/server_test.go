@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kaypee90/dependabot-wizard/github"
 	"gotest.tools/v3/assert"
 )
 
@@ -113,6 +114,33 @@ func TestPullRequestsRequiresCredentials(t *testing.T) {
 	response := do(t, newTestServer(t), http.MethodPost, "/api/pull-requests", `{"owner":"","repo":"","token":""}`)
 
 	assert.Equal(t, response.Code, http.StatusBadRequest)
+}
+
+// TestPullRequestsFilterDefaultsToDependabotRegardlessOfLabel pins the fix for
+// the reported bug: no label is required for dependabot's pull requests to be
+// found, because the filter is on the author.
+func TestPullRequestsFilterDefaultsToDependabot(t *testing.T) {
+	request := GetPullRequestsRequest{Owner: "o", Repo: "r", Token: "t"}
+
+	filter := request.filter()
+
+	assert.Equal(t, filter.Author, github.DefaultAuthor)
+	assert.Equal(t, filter.Label, "")
+	assert.Equal(t, github.BuildSearchQuery("o", "r", filter),
+		"repo:o/r is:pr sort:created-desc author:app/dependabot")
+}
+
+func TestPullRequestsFilterAcceptsAnOptionalLabel(t *testing.T) {
+	request := GetPullRequestsRequest{Owner: "o", Repo: "r", Token: "t", Label: "go mod"}
+
+	assert.Equal(t, request.filter().Label, "go mod")
+}
+
+func TestPullRequestsFilterAllowsClearingTheAuthor(t *testing.T) {
+	empty := ""
+	request := GetPullRequestsRequest{Owner: "o", Repo: "r", Token: "t", Author: &empty}
+
+	assert.Equal(t, request.filter().Author, "")
 }
 
 func TestPullRequestsRejectsNonPostRequests(t *testing.T) {

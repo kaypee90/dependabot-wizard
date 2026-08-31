@@ -29,5 +29,5 @@ func TestPrintSampleReport(t *testing.T) {
 		{Number: 59, State: "CLOSED", CreatedAt: day(80)},
 	}
 
-	os.Stdout.WriteString("\n" + BuildHealthReport("kaypee90", "zebrok", "dependencies", pullRequests, now).Markdown() + "\n")
+	os.Stdout.WriteString("\n" + BuildHealthReport("kaypee90", "zebrok", github.DependabotFilter(), pullRequests, now).Markdown() + "\n")
 }

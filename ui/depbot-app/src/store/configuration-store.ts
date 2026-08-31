@@ -19,6 +19,8 @@ class ConfigurationStore {
   hasSavedRepoDetails: boolean = false;
 
   pullRequests: PullRequest[] = [];
+  /** What the server searched for, shown when nothing came back. */
+  pullRequestFilter: string = "";
 
   detected: DetectedEcosystem[] = [];
   useDetected: boolean = false;
@@ -58,8 +60,9 @@ class ConfigurationStore {
     this.hasSavedRepoDetails = hasSaved;
   }
 
-  setPullRequests(prs: PullRequest[]) {
+  setPullRequests(prs: PullRequest[], filter: string = "") {
     this.pullRequests = prs ?? [];
+    this.pullRequestFilter = filter;
   }
 
   setScanState(state: ScanState, error: string = "") {

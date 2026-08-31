@@ -19,10 +19,14 @@ inputs:
     description: 'Repository name. Defaults to the repository running the workflow.'
     required: false
     default: ''
-  label:
-    description: 'Pull request label to count.'
+  author:
+    description: 'Pull request author to count. Dependabot pull requests are matched by author, so no label is required.'
     required: false
-    default: 'dependencies'
+    default: 'app/dependabot'
+  label:
+    description: 'Optional extra narrowing by label. Leave blank to count every pull request by the author.'
+    required: false
+    default: ''
 
 outputs:
   total:
@@ -47,5 +51,7 @@ runs:
     - ${{ inputs.owner }}
     - '--repo'
     - ${{ inputs.repo }}
+    - '--author'
+    - ${{ inputs.author }}
     - '--label'
     - ${{ inputs.label }}

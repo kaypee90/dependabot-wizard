@@ -33,12 +33,13 @@ export const GithubRepoDetails: React.FC = observer(() => {
               const data = {
                 repo: formJson.repoName,
                 owner: formJson.repoOwner,
-                token: formJson.repoToken
+                token: formJson.repoToken,
+                label: formJson.repoLabel,
               }
 
               fetchPullRequests(data)
-                .then((data) => {
-                  configStore.setPullRequests(data);
+                .then(({ pullRequests, filter }) => {
+                  configStore.setPullRequests(pullRequests, filter);
                   configStore.setHasSavedRepoDetails(true);
                   handleClose();
 
@@ -54,7 +55,8 @@ export const GithubRepoDetails: React.FC = observer(() => {
           <DialogTitle>Repository Details</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Provide the repository details.
+              Pull requests opened by Dependabot are found by author, so they do not need to
+              carry a label. Add one below only to narrow the results further.
             </DialogContentText>
             <TextField
               autoFocus
@@ -86,6 +88,16 @@ export const GithubRepoDetails: React.FC = observer(() => {
               type="password"
               fullWidth
               variant="standard"
+            />
+            <TextField
+              margin="dense"
+              id="label"
+              name="repoLabel"
+              label="Label (optional)"
+              type="text"
+              fullWidth
+              variant="standard"
+              helperText="Leave blank to include every Dependabot pull request"
             />
 
           </DialogContent>

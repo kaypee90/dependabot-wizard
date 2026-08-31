@@ -13,20 +13,14 @@ type PullRequest struct {
 	CreatedAt string  `json:"createdAt"`
 }
 
-type PullRequestNode struct {
-	Node PullRequest `json:"node"`
-}
+// AuthorLogin is the pull request's author, or an empty string when GitHub
+// reports none (a deleted account, for example).
+func (pullRequest PullRequest) AuthorLogin() string {
+	if pullRequest.Author == nil {
+		return ""
+	}
 
-type PullRequestEdges struct {
-	Edges []PullRequestNode `json:"edges"`
-}
-
-type Repository struct {
-	PullRequests PullRequestEdges `json:"pullRequests"`
-}
-
-type PullRequestResponseData struct {
-	Repository Repository `json:"repository"`
+	return pullRequest.Author.Login
 }
 
 // GraphqlError is one entry from a GraphQL "errors" block. GitHub returns
@@ -36,12 +30,27 @@ type GraphqlError struct {
 	Type    string `json:"type"`
 }
 
-type PullRequestResponse struct {
-	Data   PullRequestResponseData `json:"data"`
-	Errors []GraphqlError          `json:"errors,omitempty"`
+type searchNode struct {
+	Node PullRequest `json:"node"`
 }
 
-type PullRequestQuery struct {
+type searchResult struct {
+	IssueCount int          `json:"issueCount"`
+	Edges      []searchNode `json:"edges"`
+}
+
+type searchResponseData struct {
+	Search searchResult `json:"search"`
+}
+
+// SearchResponse is the raw shape returned by the pull request search.
+type SearchResponse struct {
+	Data   searchResponseData `json:"data"`
+	Errors []GraphqlError     `json:"errors,omitempty"`
+}
+
+// SearchQuery is a GraphQL request body.
+type SearchQuery struct {
 	Query     string            `json:"query"`
 	Variables map[string]string `json:"variables,omitempty"`
 }

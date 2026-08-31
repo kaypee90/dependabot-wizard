@@ -16,6 +16,7 @@ import PullRequestLineGraph from './pull-request-line-graph';
 import PullRequestDataGrid from './pull-request-data-grid';
 import { ThemeProvider } from '@mui/material/styles';
 import { lightTheme } from '../utils/theme';
+import Alert from '@mui/material/Alert';
 import { PullRequestState } from '../models/pull-request';
 
 const Transition = React.forwardRef(function Transition(
@@ -69,6 +70,13 @@ export const GithubInfo: React.FC = observer(() => {
             </Toolbar>
           </AppBar>
           <Box sx={{ flexGrow: 1, background: '#fff', color: '#000' }}>
+            {all === 0 && (
+              <Alert severity="info" sx={{ margin: '2.5vh 4vh 0' }}>
+                No pull requests {configStore.pullRequestFilter || 'matched'} were found. If Dependabot
+                is configured here, check the owner and repository, and that your token can see this
+                repository.
+              </Alert>
+            )}
             <Grid container spacing={1} sx={{ marginTop: '2.5vh', marginLeft: '4vh', marginRight: '1vh' }}>
               <Grid size={{ xs: 6, md: 3 }}>
                 <PullRequestCount title="All" count={all} />

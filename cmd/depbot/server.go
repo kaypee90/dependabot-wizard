@@ -29,6 +29,27 @@ type GetPullRequestsRequest struct {
 	Owner string `json:"owner"`
 	Repo  string `json:"repo"`
 	Token string `json:"token"`
+	// Author and Label are optional. Author defaults to dependabot; an empty
+	// Label means "any label", which is what finds unlabelled pull requests.
+	Author *string `json:"author,omitempty"`
+	Label  string  `json:"label,omitempty"`
+}
+
+// filter resolves the request into a client filter, defaulting to dependabot.
+func (request GetPullRequestsRequest) filter() github.Filter {
+	author := github.DefaultAuthor
+	if request.Author != nil {
+		author = *request.Author
+	}
+
+	return github.Filter{Author: author, Label: request.Label}
+}
+
+type PullRequestsResponse struct {
+	PullRequests []github.PullRequest `json:"pullRequests"`
+	// Filter describes what was searched for, so an empty result can explain
+	// itself instead of looking like a failure.
+	Filter string `json:"filter"`
 }
 
 type DetectResponse struct {
@@ -94,14 +115,19 @@ func getPullRequestsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pullRequests, err := github.GetPullRequests(r.Context(), request.Owner, request.Repo, github.DefaultLabel, request.Token)
+	filter := request.filter()
+
+	pullRequests, err := github.GetPullRequests(r.Context(), request.Owner, request.Repo, filter, request.Token)
 	if err != nil {
 		log.Printf("fetching pull requests for %s/%s: %v", request.Owner, request.Repo, err)
 		writeError(w, http.StatusBadGateway, "Could not read pull requests from GitHub: "+err.Error())
 		return
 	}
 
-	writeJSON(w, http.StatusOK, pullRequests)
+	writeJSON(w, http.StatusOK, PullRequestsResponse{
+		PullRequests: pullRequests,
+		Filter:       filter.Describe(),
+	})
 }
 
 func saveConfigurationHandler(w http.ResponseWriter, r *http.Request) {

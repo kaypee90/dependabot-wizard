@@ -24,7 +24,8 @@ for the cases where it stops being that:
   anything reaches disk. An unparseable file is rejected with the reason, not written.
 - **It shows you whether Dependabot is working.** The web UI charts your dependency pull requests, and
   the [GitHub Action](#github-action) posts the same summary on a schedule. That is the question the
-  config leads to, and GitHub makes you click through a PR list to answer it.
+  config leads to, and GitHub makes you click through a PR list to answer it. Pull requests are found
+  by author, so they are counted whether or not they carry a label.
 
 ### Before and after
 
@@ -104,12 +105,17 @@ preview, and a **Pull Requests** dashboard.
 | `--web`, `-w` | Start the web application |
 | `--port` | Port for the web application (default `3001`) |
 | `--report` | Print a dependabot health report |
-| `--owner`, `--repo`, `--label` | Target for `--report` |
+| `--owner`, `--repo` | Target repository for `--report` |
+| `--author` | Author to count (default `app/dependabot`) |
+| `--label` | Optional extra narrowing by label |
 
 `DEPBOT_NO_BROWSER=1` starts the server without opening a browser, for remote or headless use.
 `--report` reads `GITHUB_TOKEN`.
 
-The dashboard needs a GitHub token with `repo` scope. It is held in memory for the request only:
+The dashboard needs a token that can read pull requests. A fine-grained token scoped to the one
+repository with **Pull requests: Read-only** is enough; for a classic token that means `repo` for a
+private repository, or `public_repo` for a public one. If the repository belongs to an org using SAML
+SSO, authorize the token for that org afterwards. The token is held in memory for the request only:
 never written to disk, and never logged.
 
 ## What it writes
@@ -179,12 +185,18 @@ suggest `ignore` rules, or a backlog large enough to suggest `groups`.
 
 ### Inputs and outputs
 
+Pull requests are matched by **author**, not by label. Dependabot applies a `dependencies` label by
+default, but a `labels:` key in `dependabot.yml` replaces the defaults and label creation can be
+blocked entirely — so filtering on the label misses unlabelled pull requests. Set `label` only to
+narrow further.
+
 | Input | Default | Meaning |
 | --- | --- | --- |
-| `token` | `github.token` | Token with repo scope |
+| `token` | `github.token` | Token that can read pull requests |
 | `owner` | current repository | Repository owner |
 | `repo` | current repository | Repository name |
-| `label` | `dependencies` | Pull request label to count |
+| `author` | `app/dependabot` | Pull request author to count |
+| `label` | *(none)* | Optional extra narrowing by label |
 
 Outputs `total`, `open`, `merged`, `closed` and `merge-rate`, so you can gate on them:
 
