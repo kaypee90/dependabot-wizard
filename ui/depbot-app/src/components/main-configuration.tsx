@@ -1,29 +1,37 @@
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid2';
+import Stack from '@mui/material/Stack';
 
 import PackageEcosystem from './package-ecosystem';
 import ProjectScan from './project-scan';
-import ConfigDivider from './config-divider';
 import ConfigYaml from './config-yaml';
 import CreateYamlFile from './create-yaml-file';
 
+/**
+ * Two columns: the questions on the left, the file they produce on the right.
+ * The preview is sticky so it stays in view while the form is filled in.
+ */
 export function MainConfiguration() {
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <Grid container spacing={1} sx={{ minHeight: '98vh' }}>
-        <Grid sx={{ background: '#0E2535' }} size={{ xs: 12, md: 6 }}>
-          <ConfigDivider />
-          <ProjectScan />
-          <ConfigDivider />
-          <PackageEcosystem />
-          <ConfigDivider />
-          <CreateYamlFile />
-        </Grid>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+        gap: { xs: 2, md: 3 },
+        p: { xs: 2, md: 3 },
+        alignItems: 'start',
+        maxWidth: 1440,
+        mx: 'auto',
+      }}
+    >
+      <Stack spacing={2}>
+        <ProjectScan />
+        <PackageEcosystem />
+        <CreateYamlFile />
+      </Stack>
 
-        <Grid size={{ xs: 12, md: 6 }} sx={{ background: '#fff', color: '#000' }}>
-          <ConfigYaml />
-        </Grid>
-      </Grid>
+      <Box sx={{ position: { md: 'sticky' }, top: { md: 84 } }}>
+        <ConfigYaml />
+      </Box>
     </Box>
   );
 }

@@ -1,7 +1,9 @@
 import { LineChart } from '@mui/x-charts/LineChart';
 import { observer } from 'mobx-react-lite';
+
 import { PullRequest } from '../models/pull-request';
 import { configStore } from '../store/configuration-store';
+import { palette } from '../utils/theme';
 
 const PullRequestLineGraph = observer(() => {
   const grouped = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
@@ -21,9 +23,17 @@ const PullRequestLineGraph = observer(() => {
         data: values,
         area: true,
         baseline: 'min',
-        label: 'Pull Requests Created by Dependabot Over Time',
+        label: 'Pull requests opened',
+        color: palette.accent,
+        showMark: labels.length <= 30,
       }]}
-      height={300}
+      height={280}
+      margin={{ left: 44, right: 20, top: 30, bottom: 34 }}
+      sx={{
+        '& .MuiAreaElement-root': { fillOpacity: 0.16 },
+        '& .MuiChartsAxis-line, & .MuiChartsAxis-tick': { stroke: palette.borderSoft },
+        '& .MuiChartsAxis-tickLabel': { fill: palette.textFaint, fontSize: 11 },
+      }}
     />
   );
 });
