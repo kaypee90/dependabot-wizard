@@ -1,7 +1,4 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: CI
 
 on:
   push:
@@ -10,8 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
+  go:
+    name: Go
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -21,8 +18,52 @@ jobs:
       with:
         go-version: '1.22.1'
 
+    - name: Check formatting
+      run: |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "These files need gofmt:"
+          echo "$unformatted"
+          exit 1
+        fi
+
+    - name: Vet
+      run: go vet ./...
+
     - name: Build
       run: go build -v ./...
 
     - name: Test
       run: go test -v ./...
+
+    - name: Verify embedded assets
+      run: ./scripts/verify-embedded-assets.sh
+
+  ui:
+    name: UI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui/depbot-app
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install
+      run: npm install --legacy-peer-deps --no-audit --no-fund
+
+    - name: Typecheck
+      run: npx tsc --noEmit
+
+    - name: Test
+      run: CI=true npx react-scripts test --watchAll=false
+
+    - name: Build
+      run: npm run build
+
+    - name: Verify the embedded build is self-consistent
+      run: ../../scripts/verify-embedded-assets.sh ../../cmd/depbot/static

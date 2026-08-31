@@ -5,6 +5,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -15,64 +16,59 @@ import { generateYaml } from './config-generator';
 import { observer } from 'mobx-react-lite';
 import { configStore } from '../store/configuration-store';
 
+const ECOSYSTEMS: Array<[string, string]> = [
+  ['bundler', 'Bundler'],
+  ['cargo', 'Cargo'],
+  ['composer', 'Composer'],
+  ['devcontainers', 'Dev Containers'],
+  ['docker', 'Docker'],
+  ['elm', 'Elm'],
+  ['github-actions', 'GitHub Actions'],
+  ['gitsubmodule', 'Git Submodule'],
+  ['gomod', 'Go Mod'],
+  ['gradle', 'Gradle'],
+  ['maven', 'Maven'],
+  ['mix', 'Mix'],
+  ['npm', 'NPM'],
+  ['nuget', 'Nuget'],
+  ['pip', 'Pip'],
+  ['poetry', 'Poetry'],
+  ['pub', 'Pub'],
+  ['swift', 'Swift'],
+  ['terraform', 'Terraform'],
+];
+
 const PackageEcosystem: React.FC = observer(() => {
   const [ecosystem, setEcosystem] = React.useState('');
-  const [directory, setDirectory] = React.useState('');
+  const [directory, setDirectory] = React.useState('/');
   const [interval, setInterval] = React.useState('');
   const [reviewer, setReviewer] = React.useState('');
   const [openPrLimit, setOpenPrLimit] = React.useState('');
   const [configLabel, setConfigLabel] = React.useState('');
 
-  const generateConfigYaml = React.useCallback(() => {
+  // A single effect owns regeneration. The handlers below only set state:
+  // calling the generator from a handler read the value being replaced and
+  // wrote a stale preview that this effect then overwrote.
+  React.useEffect(() => {
     configStore.setPackageConfiguration(ecosystem, directory, interval, reviewer, openPrLimit, configLabel);
     generateYaml();
   }, [ecosystem, directory, interval, reviewer, openPrLimit, configLabel]);
 
-  const ecosystemHandleChange = (event: SelectChangeEvent) => {
-    setEcosystem(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  const directoryHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDirectory(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  const intervalHandleChange = (event: SelectChangeEvent) => {
-    setInterval(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  const reviewerHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setReviewer(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  const openPrLimitHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOpenPrLimit(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  const configLabelHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setConfigLabel(event.target.value as string);
-    generateConfigYaml();
-  };
-
-  React.useEffect(() => {
-    generateConfigYaml();
-  }, [generateConfigYaml]);
+  const usingDetected = configStore.useDetected && configStore.detected.length > 0;
 
   return (
-
     <Accordion sx={{ background: '#0E2535', color: '#fff' }}>
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls="panel1-content"
-        id="panel1-header"
-      >
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1-content" id="panel1-header">
         <Typography>Package Configuration</Typography>
       </AccordionSummary>
       <AccordionDetails>
+
+        {usingDetected && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Using the {configStore.detected.length} scanned ecosystems. Interval, reviewer, limit and
+            label below still apply to all of them; ecosystem and directory are taken from the scan.
+          </Alert>
+        )}
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
@@ -81,7 +77,6 @@ const PackageEcosystem: React.FC = observer(() => {
           <Grid item xs={8}>
             <div>
               <h5>Select package manager to use</h5>
-
               <FormControl fullWidth>
                 <InputLabel id="ecosystem-label">Ecosystem</InputLabel>
                 <Select
@@ -89,27 +84,12 @@ const PackageEcosystem: React.FC = observer(() => {
                   id="ecosystem"
                   value={ecosystem}
                   label="Ecosystem"
-                  onChange={ecosystemHandleChange}
+                  disabled={usingDetected}
+                  onChange={(event: SelectChangeEvent) => setEcosystem(event.target.value)}
                 >
-                  <MenuItem value={'cargo'}>Cargo</MenuItem>
-                  <MenuItem value={'docker'}>Docker</MenuItem>
-                  <MenuItem value={'gomod'}>Go Mod</MenuItem>
-                  <MenuItem value={'gradle'}>Gradle</MenuItem>
-                  <MenuItem value={'maven'}>Maven</MenuItem>
-                  <MenuItem value={'npm'}>NPM</MenuItem>
-                  <MenuItem value={'nuget'}>Nuget</MenuItem>
-                  <MenuItem value={'pip'}>Pip</MenuItem>
-                  <MenuItem value={'poetry'}>Poetry</MenuItem>
-                  <MenuItem value={'swift'}>Swift</MenuItem>
-                  <MenuItem value={'terraform'}>Terraform</MenuItem>
-                  <MenuItem value={'bundler'}>Bundler</MenuItem>
-                  <MenuItem value={'composer'}>Composer</MenuItem>
-                  <MenuItem value={'devcontainers'}>Dev Containers</MenuItem>
-                  <MenuItem value={'elm'}>Elm</MenuItem>
-                  <MenuItem value={'gitsubmodule'}>Git Submodule</MenuItem>
-                  <MenuItem value={'github-actions'}>GitHub Actions</MenuItem>
-                  <MenuItem value={'mix'}>Mix</MenuItem>
-                  <MenuItem value={'pub'}>Pub</MenuItem>
+                  {ECOSYSTEMS.map(([value, display]) => (
+                    <MenuItem key={value} value={value}>{display}</MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </div>
@@ -123,14 +103,20 @@ const PackageEcosystem: React.FC = observer(() => {
           <Grid item xs={8}>
             <div>
               <h5>Enter location of package manifest</h5>
-
               <FormControl fullWidth>
-                <TextField label="Directory" variant="outlined" value={directory} onChange={directoryHandleChange} />
+                <TextField
+                  label="Directory"
+                  variant="outlined"
+                  value={directory}
+                  disabled={usingDetected}
+                  error={directory.trim() !== '' && !directory.trim().startsWith('/')}
+                  helperText={directory.trim() !== '' && !directory.trim().startsWith('/') ? 'Must start with /' : ' '}
+                  onChange={(event) => setDirectory(event.target.value)}
+                />
               </FormControl>
             </div>
           </Grid>
         </Grid>
-
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
@@ -139,7 +125,6 @@ const PackageEcosystem: React.FC = observer(() => {
           <Grid item xs={8}>
             <div>
               <h5>How often should Dependabot check for updates</h5>
-
               <FormControl fullWidth>
                 <InputLabel id="interval-label">Interval</InputLabel>
                 <Select
@@ -147,7 +132,7 @@ const PackageEcosystem: React.FC = observer(() => {
                   id="interval"
                   value={interval}
                   label="Interval"
-                  onChange={intervalHandleChange}
+                  onChange={(event: SelectChangeEvent) => setInterval(event.target.value)}
                 >
                   <MenuItem value={'daily'}>Daily</MenuItem>
                   <MenuItem value={'weekly'}>Weekly</MenuItem>
@@ -165,9 +150,9 @@ const PackageEcosystem: React.FC = observer(() => {
           <Grid item xs={8}>
             <div>
               <h5>Enter GitHub username to add as reviewer</h5>
-
               <FormControl fullWidth>
-                <TextField label="Reviewer" variant="outlined" value={reviewer} onChange={reviewerHandleChange} />
+                <TextField label="Reviewer" variant="outlined" value={reviewer}
+                  onChange={(event) => setReviewer(event.target.value)} />
               </FormControl>
             </div>
           </Grid>
@@ -175,14 +160,14 @@ const PackageEcosystem: React.FC = observer(() => {
 
         <Grid container spacing={3}>
           <Grid item xs={4} sx={{ textAlign: 'left' }}>
-            <h5>Open Pull Requests Limit *</h5>
+            <h5>Open Pull Requests Limit</h5>
           </Grid>
           <Grid item xs={8}>
             <div>
               <h5>Set the maximum number of pull requests to be opened</h5>
-
               <FormControl fullWidth>
-                <TextField type="number" label="Opened PR Limits" variant="outlined" value={openPrLimit} onChange={openPrLimitHandleChange} />
+                <TextField type="number" label="Opened PR Limits" variant="outlined" value={openPrLimit}
+                  onChange={(event) => setOpenPrLimit(event.target.value)} />
               </FormControl>
             </div>
           </Grid>
@@ -195,9 +180,9 @@ const PackageEcosystem: React.FC = observer(() => {
           <Grid item xs={8}>
             <div>
               <h5>Label to set on pull requests</h5>
-
               <FormControl fullWidth>
-                <TextField label="Label" variant="outlined" value={configLabel} onChange={configLabelHandleChange} />
+                <TextField label="Label" variant="outlined" value={configLabel}
+                  onChange={(event) => setConfigLabel(event.target.value)} />
               </FormControl>
             </div>
           </Grid>
@@ -209,4 +194,3 @@ const PackageEcosystem: React.FC = observer(() => {
 });
 
 export default PackageEcosystem;
-

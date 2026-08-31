@@ -68,7 +68,6 @@ export const GithubRepoDetails: React.FC = observer(() => {
               variant="standard"
             />
             <TextField
-              autoFocus
               required
               margin="dense"
               id="owner"
@@ -79,13 +78,12 @@ export const GithubRepoDetails: React.FC = observer(() => {
               variant="standard"
             />
             <TextField
-              autoFocus
               required
               margin="dense"
               id="token"
               name="repoToken"
               label="Token"
-              type="text"
+              type="password"
               fullWidth
               variant="standard"
             />

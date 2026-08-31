@@ -1,5 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { PullRequest } from "../models/pull-request";
+import { DetectedEcosystem } from "../models/detected-ecosystem";
+
+export type ScanState = "idle" | "scanning" | "done" | "failed";
 
 class ConfigurationStore {
   yamlData: string = "";
@@ -17,6 +20,11 @@ class ConfigurationStore {
 
   pullRequests: PullRequest[] = [];
 
+  detected: DetectedEcosystem[] = [];
+  useDetected: boolean = false;
+  scanState: ScanState = "idle";
+  scanError: string = "";
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -30,10 +38,12 @@ class ConfigurationStore {
     this.label = label;
   }
 
+  /**
+   * Stores the rendered config verbatim. It must not be re-indented or
+   * trimmed here: doing so is what used to produce an unparseable file.
+   */
   saveYamlData(newYamlData: string) {
-    if (newYamlData.trim()) {
-      this.yamlData = newYamlData.trim() + "\n";
-    }
+    this.yamlData = newYamlData;
   }
 
   setShowGithubInfo(showInfo: boolean) {
@@ -49,9 +59,31 @@ class ConfigurationStore {
   }
 
   setPullRequests(prs: PullRequest[]) {
-    this.pullRequests = prs;
+    this.pullRequests = prs ?? [];
+  }
+
+  setScanState(state: ScanState, error: string = "") {
+    this.scanState = state;
+    this.scanError = error;
+  }
+
+  setDetected(detected: DetectedEcosystem[]) {
+    this.detected = detected;
+    this.useDetected = detected.length > 0;
+  }
+
+  setUseDetected(useDetected: boolean) {
+    this.useDetected = useDetected;
+  }
+
+  /** True when there is enough information to write a file. */
+  get isValid(): boolean {
+    if (this.useDetected) {
+      return this.detected.length > 0 && Boolean(this.schedule);
+    }
+
+    return Boolean(this.ecosystem && this.directory && this.schedule);
   }
 }
 
 export const configStore = new ConfigurationStore();
-

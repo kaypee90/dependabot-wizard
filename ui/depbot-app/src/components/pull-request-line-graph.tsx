@@ -1,49 +1,38 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
+import { observer } from 'mobx-react-lite';
 import { PullRequest } from '../models/pull-request';
 import { configStore } from '../store/configuration-store';
 
-
-const PullRequestLineGraph = () => {
-  const [data, setData] = useState<number[]>([]);
-  const [xLabels, setXLabels] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (configStore.pullRequests.length === 0) {
-      return;
-    }
-
-    const prGroupedByDate = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
+const PullRequestLineGraph = observer(() => {
+  const { labels, values } = useMemo(() => {
+    const grouped = configStore.pullRequests.reduce((acc: Record<string, number>, pr: PullRequest) => {
       const createdDate = pr.createdAt.split('T')[0];
-      if (!acc[createdDate]) {
-        acc[createdDate] = 1;
-      } else {
-        acc[createdDate]++;
-      }
-
+      acc[createdDate] = (acc[createdDate] ?? 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
-    const labels = Object.keys(prGroupedByDate);
-    const values = Object.values(prGroupedByDate);
-    setData(values);
-    setXLabels(labels);
-  }, []);
+    // Sort by date so the x-axis reads left to right in time order.
+    const sortedDates = Object.keys(grouped).sort();
+
+    return {
+      labels: sortedDates,
+      values: sortedDates.map((date) => grouped[date]),
+    };
+  }, [configStore.pullRequests]);
 
   return (
     <LineChart
-      xAxis={[{ scaleType: 'point', data: xLabels }]}
-      series={[
-        {
-          data: data,
-          area: true,
-          baseline: 'min',
-          label: 'Pull Requests Created by Dependabot Over Time',
-        },
-      ]}
+      xAxis={[{ scaleType: 'point', data: labels }]}
+      series={[{
+        data: values,
+        area: true,
+        baseline: 'min',
+        label: 'Pull Requests Created by Dependabot Over Time',
+      }]}
       height={300}
     />
   );
-}
+});
 
 export default PullRequestLineGraph;

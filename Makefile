@@ -6,32 +6,50 @@ GOGET=$(GOCMD) get
 GORUN=$(GOCMD) run
 BINARY_NAME=depbot
 BINARY_UNIX=$(BINARY_NAME)_unix
+UI_DIR=ui/depbot-app
 
-LAUNCH=$(GORUN) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS=-ldflags "-X main.version=$(VERSION)"
+
+.PHONY: run help version web build test test-go test-ui typecheck verify-assets ui clean build-run all deps build-linux
 
 run:
-	$(LAUNCH)
+	$(GORUN) $(LDFLAGS) ./cmd/depbot
 help:
-	$(LAUNCH) --help
+	$(GORUN) ./cmd/depbot --help
 version:
-	$(LAUNCH) --version
+	$(GORUN) $(LDFLAGS) ./cmd/depbot --version
 web:
-	$(LAUNCH) --web
-build: 
-	$(GOBUILD) -o $(BINARY_NAME) $$(ls -1 cmd/depbot/*.go | grep -v _test.go)
-test: 
+	$(GORUN) $(LDFLAGS) ./cmd/depbot --web
+build:
+	$(GOBUILD) $(LDFLAGS) -o $(BINARY_NAME) ./cmd/depbot
+
+## test runs both suites; the Go one alone will not catch a frontend regression.
+test: test-go test-ui verify-assets
+test-go:
 	$(GOTEST) -v ./...
-clean: 
+test-ui:
+	cd $(UI_DIR) && CI=true npx react-scripts test --watchAll=false
+typecheck:
+	cd $(UI_DIR) && npx tsc --noEmit
+verify-assets:
+	./scripts/verify-embedded-assets.sh
+
+## ui rebuilds the React app and re-embeds it in the Go binary.
+ui:
+	cd $(UI_DIR) && ./build.sh
+
+clean:
 	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_UNIX)
-build-run:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./...
+build-run: build
 	./$(BINARY_NAME)
 all: test build run
 deps:
 	$(GOGET) github.com/manifoldco/promptui
+	cd $(UI_DIR) && npm install --legacy-peer-deps
 
 # Cross compilation
 build-linux:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BINARY_UNIX) ./cmd/depbot

@@ -29,10 +29,19 @@ type PullRequestResponseData struct {
 	Repository Repository `json:"repository"`
 }
 
+// GraphqlError is one entry from a GraphQL "errors" block. GitHub returns
+// these with HTTP 200, so they must be inspected rather than assumed absent.
+type GraphqlError struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
+}
+
 type PullRequestResponse struct {
-	Data PullRequestResponseData `json:"data"`
+	Data   PullRequestResponseData `json:"data"`
+	Errors []GraphqlError          `json:"errors,omitempty"`
 }
 
 type PullRequestQuery struct {
-	Query string `json:"query"`
+	Query     string            `json:"query"`
+	Variables map[string]string `json:"variables,omitempty"`
 }

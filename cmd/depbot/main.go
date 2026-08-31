@@ -1,83 +1,106 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"os"
-	"time"
+
+	"github.com/manifoldco/promptui"
 )
 
-const version = "1.1.2"
+// version is injected at build time:
+//
+//	go build -ldflags "-X main.version=$(git describe --tags --always)"
+var version = "dev"
+
+// errCancelled means the user interrupted a prompt; it is not a failure.
+var errCancelled = errors.New("cancelled")
 
 func displayAppVersion() {
 	fmt.Printf("Depbot %s\n", version)
-	os.Exit(0)
 }
 
 func displayHelpText() {
-	text := getCliHelpText()
-	fmt.Printf("%s", text)
-	os.Exit(0)
+	fmt.Print(getCliHelpText())
 }
 
-func handlePromptError(err error) {
-	if err != nil {
-		os.Exit(0)
+// promptError converts a prompt failure into either a cancellation or a
+// real error, so Ctrl-C exits quietly and everything else is reported.
+func promptError(err error) error {
+	if errors.Is(err, promptui.ErrInterrupt) || errors.Is(err, promptui.ErrEOF) {
+		return errCancelled
 	}
+
+	return err
 }
 
-func launchWebApplication() {
+func launchWebApplication(port int) error {
+	// Bind before announcing anything, so a busy port fails loudly here
+	// instead of opening a browser onto a page that will never load.
+	listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	if err != nil {
+		return fmt.Errorf("cannot listen on port %d: %w", port, err)
+	}
+
+	url := fmt.Sprintf("http://%s/", listener.Addr().String())
+	fmt.Printf("Depbot is running at %s\nPress Ctrl-C to stop.\n", url)
+
+	served := make(chan error, 1)
 	go func() {
-		startWebApplication()
+		served <- serve(listener)
 	}()
 
-	time.Sleep(1 * time.Second)
+	// DEPBOT_NO_BROWSER keeps the server headless, for CI and smoke tests.
+	if os.Getenv("DEPBOT_NO_BROWSER") != "" {
+		fmt.Printf("Running headless. Open %s to continue.\n", url)
+	} else if err := openBrowser(url); err != nil {
+		fmt.Printf("Could not open a browser automatically. Open %s to continue.\n", url)
+	}
 
-	// open the web application in the default browser
-	openBrowser("http://127.0.0.1:3001/static/static/")
-
-	select {}
+	return <-served
 }
 
-func launchCliApplicaton() {
-	// display introduction text
-	printIntroductoryText()
-
+// collectUpdatesInteractively runs the original question-by-question flow.
+func collectUpdatesInteractively() ([]Update, error) {
 	var updates []Update
-	existingConfigurationChecked := false
 
-	// get dependabot configuration details
 	for {
-		if !existingConfigurationChecked && dependabotFileExists() {
-			if result, err := getConfigurationOverrideConfirmation(); err != nil || result == NO {
-				os.Exit(0)
-			}
-
-			existingConfigurationChecked = true
+		packageEcosystem, err := getPackageEcosystem()
+		if err != nil {
+			return nil, promptError(err)
 		}
 
-		packageEcosystem, err := getPackageEcosystem()
-		handlePromptError(err)
-
 		directory, err := getDirectory()
-		handlePromptError(err)
+		if err != nil {
+			return nil, promptError(err)
+		}
 
 		interval, err := getInterval()
-		handlePromptError(err)
+		if err != nil {
+			return nil, promptError(err)
+		}
 
 		var reviewers []string
 		reviewer, err := getReviewer()
-		handlePromptError(err)
+		if err != nil {
+			return nil, promptError(err)
+		}
 		if reviewer != "" {
 			reviewers = append(reviewers, reviewer)
 		}
 
 		openPullRequestsLimit, err := getOpenPullRequestLimit()
-		handlePromptError(err)
+		if err != nil {
+			return nil, promptError(err)
+		}
 
 		var labels []string
 		label, err := getLabel()
-		handlePromptError(err)
+		if err != nil {
+			return nil, promptError(err)
+		}
 		if label != "" {
 			labels = append(labels, label)
 		}
@@ -93,9 +116,92 @@ func launchCliApplicaton() {
 			Labels:                labels,
 		})
 
-		if result, err := addAdditionalPackageManager(); err != nil || result == NO {
-			handlePromptError(err)
-			break
+		again, err := addAdditionalPackageManager()
+		if err != nil {
+			return nil, promptError(err)
+		}
+		if again == NO {
+			return updates, nil
+		}
+	}
+}
+
+// collectUpdatesFromDetection offers whatever the scanner found. It returns
+// nil when there is nothing to offer or the user declines, so the caller can
+// fall back to the manual flow.
+func collectUpdatesFromDetection() ([]Update, error) {
+	detected, err := DetectEcosystemsInWorkingDirectory()
+	if err != nil {
+		// Detection is a convenience; never block the wizard on it.
+		fmt.Printf("Could not scan this project (%v). Falling back to manual setup.\n", err)
+		return nil, nil
+	}
+
+	if len(detected) == 0 {
+		return nil, nil
+	}
+
+	fmt.Printf("\nFound %d package %s in this project:\n", len(detected), pluralize(len(detected), "ecosystem", "ecosystems"))
+	for _, item := range detected {
+		fmt.Printf("  %-15s %-12s (from %s)\n", item.Ecosystem, item.Directory, item.Evidence)
+	}
+	fmt.Println()
+
+	accepted, err := useDetectedConfiguration()
+	if err != nil {
+		return nil, promptError(err)
+	}
+	if accepted == NO {
+		return nil, nil
+	}
+
+	interval, err := getInterval()
+	if err != nil {
+		return nil, promptError(err)
+	}
+
+	openPullRequestsLimit, err := getOpenPullRequestLimit()
+	if err != nil {
+		return nil, promptError(err)
+	}
+
+	return UpdatesFromDetection(detected, interval, openPullRequestsLimit), nil
+}
+
+func pluralize(count int, singular string, plural string) string {
+	if count == 1 {
+		return singular
+	}
+
+	return plural
+}
+
+func launchCliApplication() error {
+	printIntroductoryText()
+
+	exists, err := dependabotFileExists()
+	if err != nil {
+		return err
+	}
+	if exists {
+		result, err := getConfigurationOverrideConfirmation()
+		if err != nil {
+			return promptError(err)
+		}
+		if result == NO {
+			return errCancelled
+		}
+	}
+
+	updates, err := collectUpdatesFromDetection()
+	if err != nil {
+		return err
+	}
+
+	if len(updates) == 0 {
+		updates, err = collectUpdatesInteractively()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -104,25 +210,60 @@ func launchCliApplicaton() {
 		Updates: updates,
 	}
 
-	// write configration data to yaml file
-	yamlData := config.ConvertToYaml()
-	createDependabotYamlFile(yamlData)
-	os.Exit(0)
+	yamlData, err := config.ConvertToYaml()
+	if err != nil {
+		return err
+	}
+
+	path, err := createDependabotYamlFile(yamlData)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\nWrote %s\n", path)
+
+	return nil
+}
+
+func run() error {
+	var (
+		showVersion bool
+		startWebApp bool
+		displayHelp bool
+		port        int
+	)
+
+	flag.BoolVar(&showVersion, "version", false, "Display app version")
+	flag.BoolVar(&showVersion, "v", false, "Display app version (shorthand)")
+	flag.BoolVar(&startWebApp, "web", false, "Start web application")
+	flag.BoolVar(&startWebApp, "w", false, "Start web application (shorthand)")
+	flag.BoolVar(&displayHelp, "help", false, "Display help text")
+	flag.BoolVar(&displayHelp, "h", false, "Display help text (shorthand)")
+	flag.IntVar(&port, "port", 3001, "Port for the web application")
+
+	flag.Usage = displayHelpText
+	flag.Parse()
+
+	switch {
+	case showVersion:
+		displayAppVersion()
+		return nil
+	case displayHelp:
+		displayHelpText()
+		return nil
+	case startWebApp:
+		return launchWebApplication(port)
+	default:
+		return launchCliApplication()
+	}
 }
 
 func main() {
-	showVersion := flag.Bool("version", false, "Display app version")
-	startWebApp := flag.Bool("web", false, "Start web application")
-	displayHelp := flag.Bool("help", false, "Display help text")
-
-	flag.Parse()
-	if *showVersion {
-		displayAppVersion()
-	} else if *startWebApp {
-		launchWebApplication()
-	} else if *displayHelp {
-		displayHelpText()
-	} else {
-		launchCliApplicaton()
+	if err := run(); err != nil {
+		if errors.Is(err, errCancelled) {
+			os.Exit(0)
+		}
+		fmt.Fprintf(os.Stderr, "depbot: %v\n", err)
+		os.Exit(1)
 	}
 }
